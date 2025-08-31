@@ -6,6 +6,8 @@ django-filter==23.5
 
 # Database MySQL - usando PyMySQL (más compatible con Windows)
 PyMySQL==1.1.1
+mysqlclient==2.2.7
+
 
 # Authentication & Authorization  
 djangorestframework-simplejwt==5.3.0

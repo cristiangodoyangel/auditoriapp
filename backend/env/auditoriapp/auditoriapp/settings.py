@@ -81,7 +81,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "auditoriapp.wsgi.application"
 
 
-# Database
+# Databaseasas
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {

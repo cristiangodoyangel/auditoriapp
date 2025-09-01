@@ -2,6 +2,7 @@ from django.db import models
 import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
+# Manager para el usuario personalizado
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, nombre, password=None, **extra_fields):
         """
@@ -9,10 +10,10 @@ class CustomUserManager(BaseUserManager):
         """
         if not email:
             raise ValueError('El email debe ser establecido')
-        email = self.normalize_email(email)
+        email = self.normalize_email(email)  # Normaliza el email
         user = self.model(email=email, nombre=nombre, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
+        user.set_password(password)  # Establecer la contraseña encriptada
+        user.save(using=self._db)  # Guardar el usuario en la base de datos
         return user
 
     def create_superuser(self, email, nombre, password=None, **extra_fields):
@@ -23,6 +24,8 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, nombre, password, **extra_fields)
 
+
+# Modelo de usuario personalizado
 class CustomUser(AbstractBaseUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nombre = models.CharField(max_length=255)
@@ -40,10 +43,11 @@ class CustomUser(AbstractBaseUser):
     comunidad = models.ForeignKey('comunidades.Comunidad', on_delete=models.CASCADE, null=True, blank=True)
     creado_en = models.DateTimeField(auto_now_add=True)
 
-    objects = CustomUserManager()
+    objects = CustomUserManager()  # Manager personalizado para el modelo
 
+    # Especificamos que el 'email' es el campo de autenticación
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['nombre']
+    REQUIRED_FIELDS = ['nombre']  # 'nombre' es requerido solo para la creación
 
     def __str__(self):
         return self.nombre

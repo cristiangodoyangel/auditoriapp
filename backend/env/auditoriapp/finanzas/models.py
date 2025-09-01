@@ -15,13 +15,18 @@ class TipoMovimiento(models.Model):
 
 class MovimientoBancario(models.Model):
     comunidad = models.ForeignKey('comunidades.Comunidad', on_delete=models.CASCADE)
+    
+    # Aquí se usa ForeignKey correctamente para asignar una instancia de TipoMovimiento
     tipo = models.ForeignKey('finanzas.TipoMovimiento', on_delete=models.CASCADE)
+    
     metodo = models.CharField(max_length=50)  # Ej: Transferencia, Cheque, Efectivo
     monto = models.DecimalField(max_digits=10, decimal_places=2)
     fecha = models.DateField()
     referencia = models.CharField(max_length=255)
     conciliado = models.BooleanField(default=False)
-    creado_por = models.ForeignKey('usuarios.CustomUser', on_delete=models.SET_NULL, null=True)  # Cambiar a CustomUser
+    
+    # Cambio a CustomUser para gestionar la creación de movimiento bancario
+    creado_por = models.ForeignKey('usuarios.CustomUser', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return f"{self.tipo} - {self.referencia}"

@@ -4,31 +4,36 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 # Manager para el usuario personalizado
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, nombre, password=None, **extra_fields):
+    def create_user(self, username, email, nombre, password=None, **extra_fields):
         """
-        Crea y guarda un usuario con el email y la contraseña dados.
+        Crea y guarda un usuario con el username, email y la contraseña dados.
         """
         if not email:
             raise ValueError('El email debe ser establecido')
         email = self.normalize_email(email)  # Normaliza el email
-        user = self.model(email=email, nombre=nombre, **extra_fields)
+        if not username:
+            raise ValueError('El username debe ser establecido')
+
+        # Crear el usuario con el campo 'nombre'
+        user = self.model(username=username, email=email, nombre=nombre, **extra_fields)
         user.set_password(password)  # Establecer la contraseña encriptada
-        user.save(using=self._db)  # Guardar el usuario en la base de datos
+        user.save(using=self._db)    # Guardar el usuario en la base de datos
         return user
 
-    def create_superuser(self, email, nombre, password=None, **extra_fields):
+    def create_superuser(self, username, email, nombre, password=None, **extra_fields):
         """
-        Crea y guarda un superusuario con el email y la contraseña dados.
+        Crea y guarda un superusuario con el username, email y la contraseña dados.
         """
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        return self.create_user(email, nombre, password, **extra_fields)
+        return self.create_user(username, email, nombre, password, **extra_fields)
 
 
 # Modelo de usuario personalizado
 class CustomUser(AbstractBaseUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    nombre = models.CharField(max_length=255)
+    username = models.CharField(max_length=150, unique=True)  # Campo 'username'
+    nombre = models.CharField(max_length=255)  # Campo 'nombre'
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
@@ -45,9 +50,8 @@ class CustomUser(AbstractBaseUser):
 
     objects = CustomUserManager()  # Manager personalizado para el modelo
 
-    # Especificamos que el 'email' es el campo de autenticación
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['nombre']  # 'nombre' es requerido solo para la creación
+    USERNAME_FIELD = 'username'  # El 'username' será el campo de autenticación
+    REQUIRED_FIELDS = ['email', 'nombre']  # 'email' y 'nombre' son los campos requeridos para crear un superusuario
 
     def __str__(self):
-        return self.nombre
+        return self.username

@@ -1,7 +1,8 @@
+# Corregido: Asegúrate de crear las instancias de TipoMovimiento antes de asignarlas
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from finanzas.models import MovimientoBancario
+from finanzas.models import MovimientoBancario, TipoMovimiento  # Asegúrate de importar TipoMovimiento
 from proyectos.models import Proyecto
 from comunidades.models import Comunidad
 
@@ -13,11 +14,12 @@ class DashboardTests(APITestCase):
         """
         # Crear un usuario de prueba y autenticarse
         user = get_user_model().objects.create_user(
-            email="testuser@example.com",  # Email como 'username'
-            nombre="Test User",            # Nombre del usuario
-            password="testpassword"        # Contraseña
+            username="testuser",             # Usamos 'username' ahora
+            email="testuser@example.com",    # Email como 'username'
+            nombre="Test User",              # Nombre del usuario
+            password="testpassword"          # Contraseña
         )
-        self.client.login(email="testuser@example.com", password="testpassword")  # Loguear al usuario creado
+        self.client.login(username="testuser", password="testpassword")  # Loguear al usuario creado
         
         # Crear los datos de prueba
         comunidad = Comunidad.objects.create(nombre='Comunidad Test', ciudad='Ciudad Test')
@@ -29,12 +31,30 @@ class DashboardTests(APITestCase):
             fecha_inicio='2023-01-01', 
             fecha_fin='2023-12-31'
         )
+
+        # Corregido: Crear las instancias de TipoMovimiento
+        tipo_ingreso = TipoMovimiento.objects.create(tipo='Ingreso')
+        tipo_egreso = TipoMovimiento.objects.create(tipo='Egreso')
+
+        # Corregido: Crear un MovimientoBancario con tipo 'Ingreso'
         MovimientoBancario.objects.create(
-            comunidad=comunidad, 
-            tipo='Ingreso', 
-            monto=5000, 
-            fecha='2023-09-01', 
-            referencia='Ingreso test'
+            comunidad=comunidad,
+            tipo=tipo_ingreso,  # Aquí asignamos la instancia de TipoMovimiento
+            metodo='Transferencia',
+            monto=5000,
+            fecha='2023-09-01',
+            referencia='Ingreso test',
+            creado_por=user  # Asumiendo que ya tienes un usuario creado
+        )
+
+        MovimientoBancario.objects.create(
+            comunidad=comunidad,
+            tipo=tipo_egreso,  # Aquí asignamos la instancia de TipoMovimiento
+            metodo='Cheque',
+            monto=3000,
+            fecha='2023-09-02',
+            referencia='Egreso test',
+            creado_por=user
         )
 
     def test_resumen_kpis(self):

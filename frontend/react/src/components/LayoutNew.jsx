@@ -99,9 +99,5 @@ const Layout = ({ children }) => {
     </div>
   );
 };
-      </main>
-    </div>
-  );
-};
 
 export default Layout;

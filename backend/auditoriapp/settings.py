@@ -53,6 +53,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -132,11 +133,22 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Media files
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Vite dev server
+    "http://127.0.0.1:5173",
+]
 
 # Agrega esto en la configuración de `REST_FRAMEWORK` dentro de settings.py
 REST_FRAMEWORK = {
@@ -149,12 +161,22 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Tiempo de vida del access token
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Tiempo de vida del refresh token
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Tiempo de vida del access token
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # Tiempo de vida del refresh token
     'ROTATE_REFRESH_TOKENS': True,                   # Si rotamos los refresh tokens
     'BLACKLIST_AFTER_ROTATION': True,                # Si se pone en blacklist el refresh token después de su rotación
     'ALGORITHM': 'HS256',                            # Algoritmo de codificación (default HS256)
     'SIGNING_KEY': SECRET_KEY,                       # Clave secreta para firmar los JWT
 }
+
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_ALL_ORIGINS = True  # Solo para desarrollo
 
 

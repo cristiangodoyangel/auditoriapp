@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import resumen
+from . import views
 
 urlpatterns = [
-    path("resumen/", resumen, name="dashboard-resumen"),  # La ruta está correctamente definida
+    path("resumen/", views.resumen, name="dashboard-resumen"),
+    path("kpis/", views.dashboard_kpis, name="dashboard_kpis"),
 ]

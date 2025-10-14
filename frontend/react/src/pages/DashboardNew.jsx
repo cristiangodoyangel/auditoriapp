@@ -1,6 +1,84 @@
 import React, { useState, useEffect } from 'react';
+import { TrendingUp, DollarSign, FileCheck, AlertCircle, Plus } from '../components/ui/icons';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { getDashboardKPIs } from '../services/apiService';
 import { getUser } from '../services/authService';
+
+const kpiData = [
+  {
+    title: 'Fondos Recibidos',
+    value: '$2.450.000.000',
+    change: '+12%',
+    icon: DollarSign,
+    color: 'text-blue-600'
+  },
+  {
+    title: 'Ejecutado',
+    value: '$1.890.000.000',
+    change: '+8%',
+    icon: TrendingUp,
+    color: 'text-emerald-600'
+  },
+  {
+    title: 'Saldo Disponible',
+    value: '$560.000.000',
+    change: '-3%',
+    icon: FileCheck,
+    color: 'text-slate-600'
+  },
+  {
+    title: '% Rendido',
+    value: '77%',
+    change: '+5%',
+    icon: AlertCircle,
+    color: 'text-amber-600'
+  }
+];
+
+const executionData = [
+  { comunidad: 'Pueblo Alto', ejecutado: 450, presupuesto: 500 },
+  { comunidad: 'Valle Verde', ejecutado: 380, presupuesto: 420 },
+  { comunidad: 'Cerro Azul', ejecutado: 290, presupuesto: 350 },
+  { comunidad: 'Rio Norte', ejecutado: 200, presupuesto: 280 },
+  { comunidad: 'Las Flores', ejecutado: 570, presupuesto: 600 },
+];
+
+const projectTypes = [
+  { name: 'Becas', value: 45, color: '#3B82F6' },
+  { name: 'Vehículos', value: 25, color: '#10B981' },
+  { name: 'Terrenos', value: 20, color: '#F59E0B' },
+  { name: 'Otros', value: 10, color: '#6B7280' },
+];
+
+const pendingReports = [
+  {
+    comunidad: 'Pueblo Alto',
+    proyecto: 'Becas Universitarias 2024',
+    monto: '$45.000.000',
+    documentos: 12,
+    estado: 'Pendiente',
+    vencimiento: '2024-01-15'
+  },
+  {
+    comunidad: 'Valle Verde',
+    proyecto: 'Compra Camioneta',
+    monto: '$28.000.000',
+    documentos: 8,
+    estado: 'En Revisión',
+    vencimiento: '2024-01-20'
+  },
+  {
+    comunidad: 'Cerro Azul',
+    proyecto: 'Terreno Comunitario',
+    monto: '$85.000.000',
+    documentos: 15,
+    estado: 'Pendiente',
+    vencimiento: '2024-01-25'
+  }
+];
 
 const Dashboard = () => {
   const [kpis, setKpis] = useState(null);
@@ -237,213 +315,5 @@ const Dashboard = () => {
     </div>
   );
 };
-
-  useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/proyectos/')
-      .then(response => setTotalProyectos(response.data.length))
-      .catch(error => console.error('Error al obtener proyectos:', error));
-
-    axios.get('http://127.0.0.1:8000/api/movimientos/')
-      .then(response => setTotalMovimientos(response.data.length))
-      .catch(error => console.error('Error al obtener movimientos:', error));
-
-    axios.get('http://127.0.0.1:8000/api/gastos/')
-      .then(response => setTotalGastos(response.data.reduce((acc, gasto) => acc + gasto.monto, 0)))
-      .catch(error => console.error('Error al obtener gastos:', error));
-
-    axios.get('http://127.0.0.1:8000/api/beneficiarios/')
-      .then(response => setTotalBeneficiarios(response.data.length))
-      .catch(error => console.error('Error al obtener beneficiarios:', error));
-
-    axios.get('http://127.0.0.1:8000/api/usuarios/')
-      .then(response => setTotalUsuarios(response.data.length))
-      .catch(error => console.error('Error al obtener usuarios:', error));
-
-    axios.get('http://127.0.0.1:8000/api/comunidades/')
-      .then(response => setTotalComunidades(response.data.length))
-      .catch(error => console.error('Error al obtener comunidades:', error));
-
-    axios.get('http://127.0.0.1:8000/api/ejecucion-comunidades/')
-      .then(response => setExecutionData(response.data))
-      .catch(error => console.error('Error al obtener ejecución por comunidad:', error));
-
-    axios.get('http://127.0.0.1:8000/api/tipos-proyecto/')
-      .then(response => setProjectTypes(response.data))
-      .catch(error => console.error('Error al obtener tipos de proyectos:', error));
-
-    axios.get('http://127.0.0.1:8000/api/reportes-pendientes/')
-      .then(response => setPendingReports(response.data))
-      .catch(error => console.error('Error al obtener reportes pendientes:', error));
-  }, []);
-
-  if (!totalProyectos || !totalMovimientos || !totalGastos || !totalBeneficiarios || !totalUsuarios || !totalComunidades) {
-    return <div>Loading...</div>;
-  }
-
-  return (
-    <div className="container py-4">
-      {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h1 className="h3 text-dark"></h1>
-          <p className="text-muted"></p>
-        </div>
-        <div className="d-flex gap-3">
-          <Button className="btn btn-success">
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo Desembolso
-          </Button>
-          <Button className="btn btn-primary">
-            <Plus className="w-4 h-4 mr-2" />
-            Crear Proyecto
-          </Button>
-        </div>
-      </div>
-
-      {/* KPIs */}
-      <div className="kpi-row">
-        <div className="kpi-card">
-          <div className="dashboard-card">
-            <CardHeader>
-              <div className="dashboard-card-title">Total Proyectos</div>
-            </CardHeader>
-            <CardContent>
-              <div className="dashboard-card-content">{totalProyectos}</div>
-            </CardContent>
-          </div>
-        </div>
-        <div className="kpi-card">
-          <div className="dashboard-card">
-            <CardHeader>
-              <div className="dashboard-card-title">Total Movimientos</div>
-            </CardHeader>
-            <CardContent>
-              <div className="dashboard-card-content">{totalMovimientos}</div>
-            </CardContent>
-          </div>
-        </div>
-        <div className="kpi-card">
-          <div className="dashboard-card">
-            <CardHeader>
-              <div className="dashboard-card-title">Total Gastos</div>
-            </CardHeader>
-            <CardContent>
-              <div className="dashboard-card-content">${totalGastos.toLocaleString()}</div>
-            </CardContent>
-          </div>
-        </div>
-        <div className="kpi-card">
-          <div className="dashboard-card">
-            <CardHeader>
-              <div className="dashboard-card-title">Total Comunidades</div>
-            </CardHeader>
-            <CardContent>
-              <div className="dashboard-card-content">{totalComunidades}</div>
-            </CardContent>
-          </div>
-        </div>
-      </div>
-
-       
-      {/* Charts Row */}
-      <div className="charts-row" style={{ display: 'flex', gap: '24px', marginBottom: '32px' }}>
-        <div className="dashboard-card" style={{ flex: 1 }}>
-          <CardHeader>
-            <div className="dashboard-card-title">Ejecución por Comunidad</div>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={executionData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="comunidad" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`$${value}M`, '']} />
-                <Bar dataKey="presupuesto" fill="#E2E8F0" name="Presupuesto" />
-                <Bar dataKey="ejecutado" fill="#3B82F6" name="Ejecutado" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </div>
-
-        <div className="dashboard-card" style={{ flex: 1 }}>
-          <CardHeader>
-            <div className="dashboard-card-title">Tipos de Proyecto</div>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={projectTypes}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  dataKey="value"
-                >
-                  {projectTypes.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => [`${value}%`, '']} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="d-flex flex-wrap gap-2 mt-3">
-              {projectTypes.map((type, index) => (
-                <div key={index} className="d-flex align-items-center gap-2">
-                  <div className="rounded-circle" style={{ width: '15px', height: '15px', backgroundColor: type.color }} />
-                  <span className="text-muted small">{type.name} ({type.value}%)</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </div>
-      </div>
-
-      {/* Pending Reports Table */}
-      <div className="dashboard-card" style={{ marginTop: '24px' }}>
-        <CardHeader>
-          <div className="dashboard-card-title">Rendiciones Pendientes</div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Comunidad</TableHead>
-                <TableHead>Proyecto</TableHead>
-                <TableHead>Monto</TableHead>
-                <TableHead>Documentos</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Vencimiento</TableHead>
-                <TableHead>Acción</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pendingReports.map((report, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{report.comunidad}</TableCell>
-                  <TableCell>{report.proyecto}</TableCell>
-                  <TableCell>{report.monto}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{report.documentos} archivos</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={report.estado === 'Pendiente' ? 'destructive' : 'secondary'}>
-                      {report.estado}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted">{report.vencimiento}</TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm">Revisar</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </div>
-  
-    </div>
-  );
-}
 
 export default Dashboard;

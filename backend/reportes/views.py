@@ -1,3 +1,7 @@
-from django.shortcuts import render
+from rest_framework import viewsets
+from .models import AuditorReporte
+from .serializers import AuditorReporteSerializer
 
-# Create your views here.
+class AuditorReporteViewSet(viewsets.ModelViewSet):
+	queryset = AuditorReporte.objects.all()
+	serializer_class = AuditorReporteSerializer

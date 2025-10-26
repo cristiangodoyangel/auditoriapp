@@ -22,7 +22,6 @@ class Comunidad(models.Model):
     activa = models.BooleanField(default=True)
     creada_en = models.DateTimeField(auto_now_add=True)
     usuario = models.ForeignKey('usuarios.CustomUser', on_delete=models.CASCADE, null=True, blank=True, related_name='comunidades')
-    monto_asignado = models.DecimalField(max_digits=15, decimal_places=2, default=0)
 
     def __str__(self):
         return self.nombre

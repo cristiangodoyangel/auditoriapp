@@ -1,3 +1,7 @@
-from django.shortcuts import render
+from rest_framework import viewsets
+from .models import Beneficiario
+from .serializers import BeneficiarioSerializer
 
-# Create your views here.
+class BeneficiarioViewSet(viewsets.ModelViewSet):
+	queryset = Beneficiario.objects.all()
+	serializer_class = BeneficiarioSerializer

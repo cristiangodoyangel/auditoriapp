@@ -12,6 +12,13 @@ def home(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('usuarios.urls')),
+    path('api/comunidades/', include('comunidades.urls')),
+    path('api/periodos/', include('periodos.urls')),
+    path('api/finanzas/', include('finanzas.urls')),
+    path('api/beneficiarios/', include('beneficiarios.urls')),
+    path('api/documentos/', include('documentos.urls')),
+    path('api/auditores/', include('auditores.urls')),
+    path('api/reportes/', include('reportes.urls')),
     path('api/', include('proyectos.urls')),
     path('api/dashboard/', include('dashboard.urls')),
     path('', home),

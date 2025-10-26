@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class CustomUser(AbstractUser):
+    nombre = models.CharField(max_length=100, blank=True)
     comunidad = models.ForeignKey('comunidades.Comunidad', on_delete=models.CASCADE, null=True, blank=True)
     rol = models.CharField(max_length=20, choices=[
         ('admin', 'Admin'),

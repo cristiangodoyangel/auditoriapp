@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     'rest_framework',  # Si usas Django REST Framework
     'corsheaders',     # Si usas django-cors-headers
     'usuarios',        # Gestión de usuarios y autenticación
+    'rendiciones',       # Gestión de rendiciones de cuentas
+    'periodos',            # Gestión de periodos de proyectos
+    'auditores'            # Gestión de auditores
 ]
 
 

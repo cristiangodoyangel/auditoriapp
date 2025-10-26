@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
@@ -11,6 +12,9 @@ def home(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     path('api/auth/', include('usuarios.urls')),
     path('api/comunidades/', include('comunidades.urls')),
     path('api/periodos/', include('periodos.urls')),

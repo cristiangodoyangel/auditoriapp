@@ -50,7 +50,9 @@ INSTALLED_APPS = [
     'usuarios',        # Gestión de usuarios y autenticación
     'rendiciones',       # Gestión de rendiciones de cuentas
     'periodos',            # Gestión de periodos de proyectos
-    'auditores'            # Gestión de auditores
+    'auditores',            # Gestión de auditores
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
 ]
 
 
@@ -153,14 +155,21 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
 ]
 
-# Agrega esto en la configuración de `REST_FRAMEWORK` dentro de settings.py
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',  # Agrega esta línea
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',  # Configura permisos para que solo los usuarios autenticados puedan acceder
+        'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Auditoriapp API',
+    'DESCRIPTION': 'Documentación de la API para el sistema SaaS de gestión de comunidades y auditoría.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 SIMPLE_JWT = {

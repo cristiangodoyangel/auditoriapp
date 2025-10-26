@@ -4,7 +4,7 @@ from .models import Comunidad, Consejo, Socio
 class ComunidadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comunidad
-        exclude = ['monto_asignado']
+        fields = '__all__'
 
 class ConsejoSerializer(serializers.ModelSerializer):
     class Meta:

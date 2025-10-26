@@ -3,7 +3,7 @@ from .models import Documento
 
 @admin.register(Documento)
 class DocumentoAdmin(admin.ModelAdmin):
-    list_display = ('entidad', 'tipo', 'archivo', 'subido_por', 'creado_en')
-    search_fields = ('entidad', 'tipo', 'subido_por__username')
+    list_display = ('nombre', 'tipo', 'archivo', 'descripcion', 'proyecto', 'asamblea')
+    search_fields = ('nombre', 'tipo', 'descripcion')
 
 # Register your models here.

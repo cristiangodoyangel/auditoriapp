@@ -1,19 +1,15 @@
 # documentos/models.py
 from django.db import models
 
-class Documento(models.Model):
-    ENTIDAD_CHOICES = [
-        ('Proyecto', 'Proyecto'),
-        ('Gasto', 'Gasto'),
-        ('Beneficiario', 'Beneficiario'),
-    ]
 
-    entidad = models.CharField(max_length=50, choices=ENTIDAD_CHOICES)
-    entidad_id = models.IntegerField()
-    tipo = models.CharField(max_length=50)  # Ejemplo: Factura, Certificado, Transferencia
+class Documento(models.Model):
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+    proyecto = models.ForeignKey('proyectos.Proyecto', on_delete=models.SET_NULL, null=True, blank=True)
+    asamblea = models.ForeignKey('proyectos.Asamblea', on_delete=models.SET_NULL, null=True, blank=True)
+    nombre = models.CharField(max_length=255)
+    tipo = models.CharField(max_length=50)
     archivo = models.FileField(upload_to='documentos/')
-    subido_por = models.ForeignKey('usuarios.CustomUser', on_delete=models.CASCADE)  # Cambiar a CustomUser
-    creado_en = models.DateTimeField(auto_now_add=True)
+    descripcion = models.TextField(blank=True)
 
     def __str__(self):
-        return f"Documento {self.tipo} - {self.entidad}"
+        return f"Documento {self.nombre} - {self.tipo}"

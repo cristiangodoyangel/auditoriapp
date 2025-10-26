@@ -3,7 +3,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Sum, Count
-from proyectos.models import Proyecto, Periodo
+from proyectos.models import Proyecto
+from periodos.models import Periodo
 from comunidades.models import Comunidad
 
 @api_view(['GET'])

@@ -4,19 +4,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from .models import Proyecto, Periodo, Socio
-from .serializers import ProyectoSerializer, PeriodoSerializer, SocioSerializer
-
-class PeriodoViewSet(viewsets.ModelViewSet):
-    serializer_class = PeriodoSerializer
-    permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        if self.request.user.rol == 'Admin Comunidad':
-            return Periodo.objects.filter(comunidad=self.request.user.comunidad)
-        elif self.request.user.rol in ['Admin Consejo', 'Auditor']:
-            return Periodo.objects.all()
-        return Periodo.objects.none()
+from .models import Proyecto, Asamblea
+from .serializers import ProyectoSerializer, AsambleaSerializer
 
 class ProyectoViewSet(viewsets.ModelViewSet):
     serializer_class = ProyectoSerializer
@@ -77,19 +66,7 @@ class ProyectoViewSet(viewsets.ModelViewSet):
         return Response({'error': 'El proyecto no está en revisión'}, 
                        status=status.HTTP_400_BAD_REQUEST)
 
-class SocioViewSet(viewsets.ModelViewSet):
-    serializer_class = SocioSerializer
+class AsambleaViewSet(viewsets.ModelViewSet):
+    serializer_class = AsambleaSerializer
     permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        if self.request.user.rol == 'Admin Comunidad':
-            return Socio.objects.filter(comunidad=self.request.user.comunidad)
-        elif self.request.user.rol in ['Admin Consejo', 'Auditor']:
-            return Socio.objects.all()
-        return Socio.objects.none()
-    
-    def perform_create(self, serializer):
-        if self.request.user.rol == 'Admin Comunidad':
-            serializer.save(comunidad=self.request.user.comunidad)
-        else:
-            serializer.save()
+    queryset = Asamblea.objects.all()

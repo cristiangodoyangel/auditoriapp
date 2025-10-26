@@ -1,16 +1,9 @@
 from django.db import models
 
-class Reporte(models.Model):
-    TIPO_CHOICES = [
-        ('Ejecución', 'Ejecución'),
-        ('Rendición', 'Rendición'),
-        ('Estado de Cuenta', 'Estado de Cuenta'),
-    ]
-
-    proyecto = models.ForeignKey('proyectos.Proyecto', on_delete=models.CASCADE)
-    tipo = models.CharField(max_length=50, choices=TIPO_CHOICES)
+class AuditorReporte(models.Model):
+    auditor = models.ForeignKey('auditores.Auditor', on_delete=models.CASCADE)
     fecha = models.DateField()
-    pdf_url = models.URLField()
+    descripcion = models.TextField()
 
     def __str__(self):
-        return f"Reporte {self.tipo} - {self.proyecto.nombre}"
+        return f"Reporte Auditor {self.auditor} - {self.fecha}"

@@ -1,10 +1,16 @@
+/* Hover especial para DashboardCard */
+.dashboard-card-hover:hover {
+  box-shadow: 0 0 8px 2px var(--color-blush), 0 2px 8px rgba(0,0,0,0.08);
+  transition: box-shadow 0.2s;
+  filter: brightness(1.04);
+}
 @import "tailwindcss";
 
 :root {
   --color-deep-purple: #363237;
   --color-indigo: #2D4262;
   --color-taupe: #73605B;
-  --color-blush: #D09683;
+  --color-blush: #d8b1a4;
   --color-background: #f8f7f6;
   --color-card: #fff;
 }

@@ -298,7 +298,7 @@ export default function Proyectos() {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white rounded-lg shadow border border-gray-200">
-              <thead className="bg-gray-100">
+              <thead className="bg-blush">
                 <tr>
                   <th className="px-4 py-2 text-left">Nombre</th>
                   <th className="px-4 py-2 text-left">Presupuesto Total</th>

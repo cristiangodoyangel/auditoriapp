@@ -1,4 +1,6 @@
+
 import React, { useEffect, useState } from 'react';
+import DashboardCard from '../components/DashboardCard';
 
 function formatMonto(monto) {
   if (monto === undefined || monto === null || isNaN(monto)) return 'Sin datos aún';
@@ -43,18 +45,9 @@ export default function Dashboard() {
           }
           return (
             <>
-              <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center border border-gray-200">
-                <div className="font-semibold text-taupe h-8 flex items-center justify-center">Monto Asignado</div>
-                <div className="text-2xl font-bold text-indigo h-8 flex items-center justify-center">${formatMonto(montoAsignado)}</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center border border-gray-200">
-                <div className="font-semibold text-taupe h-8 flex items-center justify-center">Monto Rendido</div>
-                <div className="text-2xl font-bold text-green-600 h-8 flex items-center justify-center">${formatMonto(montoRendido)}</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center border border-gray-200">
-                <div className="font-semibold text-taupe h-8 flex items-center justify-center">Monto por Rendir</div>
-                <div className="text-2xl font-bold text-orange-600 h-8 flex items-center justify-center">${formatMonto(montoPorRendir)}</div>
-              </div>
+              <DashboardCard titulo="Monto Asignado" monto={montoAsignado} color="indigo" />
+              <DashboardCard titulo="Monto Rendido" monto={montoRendido} color="taupe" />
+              <DashboardCard titulo="Monto por Rendir" monto={montoPorRendir} color="taupe" />
             </>
           );
         })()}
@@ -68,22 +61,10 @@ export default function Dashboard() {
           <div className="col-span-4 text-center text-taupe">Cargando...</div>
         ) : proyectos ? (
           <>
-            <div className="bg-white rounded-lg shadow p-6 flex flex-col gap-2 border border-gray-200">
-                <div className="font-semibold text-taupe h-8 flex items-center justify-center">Proyectos Totales</div>
-                <div className="text-2xl font-bold text-taupe h-8 flex items-center justify-center">{proyectos.length}</div>
-            </div>
-            <div className="bg-white rounded-lg shadow p-6 flex flex-col gap-2 border border-gray-200">
-                <div className="font-semibold text-taupe h-8 flex items-center justify-center">Proyectos Aprobados</div>
-                <div className="text-2xl font-bold text-taupe h-8 flex items-center justify-center">{proyectos.filter(p => p.estado === 'Aprobado').length}</div>
-            </div>
-            <div className="bg-white rounded-lg shadow p-6 flex flex-col gap-2 border border-gray-200">
-                <div className="font-semibold text-taupe h-8 flex items-center justify-center">Proyectos Pendientes</div>
-                <div className="text-2xl font-bold text-taupe h-8 flex items-center justify-center">{proyectos.filter(p => p.estado === 'Pendiente').length}</div>
-            </div>
-            <div className="bg-white rounded-lg shadow p-6 flex flex-col gap-2 border border-gray-200">
-                <div className="font-semibold text-taupe h-8 flex items-center justify-center">Proyectos Rechazados</div>
-                <div className="text-2xl font-bold text-taupe h-8 flex items-center justify-center">{proyectos.filter(p => p.estado === 'Rechazado').length}</div>
-            </div>
+      <DashboardCard titulo="Proyectos Totales" monto={proyectos.length} color="taupe" />
+      <DashboardCard titulo="Proyectos Aprobados" monto={proyectos.filter(p => p.estado === 'Aprobado').length} color="taupe" />
+      <DashboardCard titulo="Proyectos Pendientes" monto={proyectos.filter(p => p.estado === 'Pendiente').length} color="taupe" />
+      <DashboardCard titulo="Proyectos Rechazados" monto={proyectos.filter(p => p.estado === 'Rechazado').length} color="taupe" />
           </>
         ) : (
           <div className="col-span-4 text-center text-taupe">Sin datos aún</div>

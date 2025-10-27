@@ -1,449 +1,74 @@
-import React, { useState, useEffect } from 'react';
-import { getDashboardKPIs } from '../services/apiService';
-import { getUser } from '../services/authService';
+import React from 'react';
+import '../../dashboard-theme.css';
 
 const Dashboard = () => {
-  const [kpis, setKpis] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const user = getUser();
-
-  useEffect(() => {
-    loadKPIs();
-  }, []);
-
-  const loadKPIs = async () => {
-    try {
-      const data = await getDashboardKPIs();
-      setKpis(data);
-    } catch (err) {
-      setError('Error al cargar los datos del dashboard');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP'
-    }).format(amount);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-500"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-        {error}
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="border-b border-gray-200 pb-5">
-        <h3 className="text-lg leading-6 font-medium text-gray-900">
-          Dashboard - {user?.comunidad?.nombre || 'Sistema Global'}
-        </h3>
-        <p className="mt-2 max-w-4xl text-sm text-gray-500">
-          Resumen financiero y de proyectos
-          {kpis?.periodo_actual && (
-            <span> - Periodo {kpis.periodo_actual.año}</span>
-          )}
-        </p>
-      </div>
+    <main>
+      {/* Encabezado */}
+      <header className="dashboard-header">
+        <h1>Sistema Auditoría - Comunidades Lickanantay</h1>
+        <p>Panel de Control</p>
+      </header>
 
-      {/* KPIs Cards */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Monto Total Asignado */}
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">$</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Monto Total Asignado
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {formatCurrency(kpis?.monto_total_asignado || 0)}
-                  </dd>
-                </dl>
-              </div>
-            </div>
+      {/* Resumen General */}
+      <section className="dashboard-panel">
+        <div className="dashboard-section-title">Resumen General</div>
+        <div
+          style={{
+            display: 'flex',
+            gap: '2rem',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+          }}
+        >
+          <div className="dashboard-kpi">
+            <div className="dashboard-kpi-title">Fondos Recibidos</div>
+            <div className="dashboard-kpi-value">$0</div>
+          </div>
+          <div className="dashboard-kpi">
+            <div className="dashboard-kpi-title">Ejecutado</div>
+            <div className="dashboard-kpi-value">$0</div>
+          </div>
+          <div className="dashboard-kpi">
+            <div className="dashboard-kpi-title">Saldo Disponible</div>
+            <div className="dashboard-kpi-value">$0</div>
+          </div>
+          <div className="dashboard-kpi">
+            <div className="dashboard-kpi-title">% Rendido</div>
+            <div className="dashboard-kpi-value">0%</div>
           </div>
         </div>
 
-        {/* Monto Gastado */}
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">-</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Monto Gastado
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {formatCurrency(kpis?.monto_gastado || 0)}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
+        <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          <button className="dashboard-btn">+ Nuevo Desembolso</button>
+          <button className="dashboard-btn">+ Crear Proyecto</button>
         </div>
+      </section>
 
-        {/* Monto Disponible */}
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">+</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Monto Disponible
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {formatCurrency(kpis?.monto_disponible || 0)}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Total Proyectos */}
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">#</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Total Proyectos
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {kpis?.total_proyectos || 0}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Estados de Proyectos */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-            Estado de Proyectos
-          </h3>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-600">
-                {kpis?.proyectos_pendientes || 0}
-              </div>
-              <div className="text-sm text-gray-500">Borradores</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">
-                {kpis?.proyectos_en_revision || 0}
-              </div>
-              <div className="text-sm text-gray-500">En Revisión</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {kpis?.proyectos_aprobados || 0}
-              </div>
-              <div className="text-sm text-gray-500">Aprobados</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Información del Periodo */}
-      {kpis?.periodo_actual && (
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-              Información del Periodo {kpis.periodo_actual.año}
-            </h3>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Monto Asignado</dt>
-                <dd className="text-lg font-medium text-gray-900">
-                  {formatCurrency(kpis.periodo_actual.monto_asignado)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Saldo Anterior</dt>
-                <dd className="text-lg font-medium text-gray-900">
-                  {formatCurrency(kpis.periodo_actual.saldo_anterior)}
-                </dd>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Información Global (Solo para Admin Consejo/Auditor) */}
-      {user?.rol === 'Admin Consejo' || user?.rol === 'Auditor' ? (
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-              Información Global
-            </h3>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Total Comunidades</dt>
-                <dd className="text-lg font-medium text-gray-900">
-                  {kpis?.total_comunidades || 0}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Periodos Activos</dt>
-                <dd className="text-lg font-medium text-gray-900">
-                  {kpis?.periodos_activos || 0}
-                </dd>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
+      {/* Ejemplo de Tabla */}
+      <section className="dashboard-panel">
+        <div className="dashboard-section-title">Ejemplo de Tabla</div>
+        <table className="dashboard-table">
+          <thead>
+            <tr>
+              <th>Comunidad</th>
+              <th>Proyecto</th>
+              <th>Monto</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ejemplo</td>
+              <td>Proyecto X</td>
+              <td>$0</td>
+              <td>Pendiente</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
   );
 };
-
-  useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/proyectos/')
-      .then(response => setTotalProyectos(response.data.length))
-      .catch(error => console.error('Error al obtener proyectos:', error));
-
-    axios.get('http://127.0.0.1:8000/api/movimientos/')
-      .then(response => setTotalMovimientos(response.data.length))
-      .catch(error => console.error('Error al obtener movimientos:', error));
-
-    axios.get('http://127.0.0.1:8000/api/gastos/')
-      .then(response => setTotalGastos(response.data.reduce((acc, gasto) => acc + gasto.monto, 0)))
-      .catch(error => console.error('Error al obtener gastos:', error));
-
-    axios.get('http://127.0.0.1:8000/api/beneficiarios/')
-      .then(response => setTotalBeneficiarios(response.data.length))
-      .catch(error => console.error('Error al obtener beneficiarios:', error));
-
-    axios.get('http://127.0.0.1:8000/api/usuarios/')
-      .then(response => setTotalUsuarios(response.data.length))
-      .catch(error => console.error('Error al obtener usuarios:', error));
-
-    axios.get('http://127.0.0.1:8000/api/comunidades/')
-      .then(response => setTotalComunidades(response.data.length))
-      .catch(error => console.error('Error al obtener comunidades:', error));
-
-    axios.get('http://127.0.0.1:8000/api/ejecucion-comunidades/')
-      .then(response => setExecutionData(response.data))
-      .catch(error => console.error('Error al obtener ejecución por comunidad:', error));
-
-    axios.get('http://127.0.0.1:8000/api/tipos-proyecto/')
-      .then(response => setProjectTypes(response.data))
-      .catch(error => console.error('Error al obtener tipos de proyectos:', error));
-
-    axios.get('http://127.0.0.1:8000/api/reportes-pendientes/')
-      .then(response => setPendingReports(response.data))
-      .catch(error => console.error('Error al obtener reportes pendientes:', error));
-  }, []);
-
-  if (!totalProyectos || !totalMovimientos || !totalGastos || !totalBeneficiarios || !totalUsuarios || !totalComunidades) {
-    return <div>Loading...</div>;
-  }
-
-  return (
-    <div className="container py-4">
-      {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h1 className="h3 text-dark"></h1>
-          <p className="text-muted"></p>
-        </div>
-        <div className="d-flex gap-3">
-          <Button className="btn btn-success">
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo Desembolso
-          </Button>
-          <Button className="btn btn-primary">
-            <Plus className="w-4 h-4 mr-2" />
-            Crear Proyecto
-          </Button>
-        </div>
-      </div>
-
-      {/* KPIs */}
-      <div className="kpi-row">
-        <div className="kpi-card">
-          <div className="dashboard-card">
-            <CardHeader>
-              <div className="dashboard-card-title">Total Proyectos</div>
-            </CardHeader>
-            <CardContent>
-              <div className="dashboard-card-content">{totalProyectos}</div>
-            </CardContent>
-          </div>
-        </div>
-        <div className="kpi-card">
-          <div className="dashboard-card">
-            <CardHeader>
-              <div className="dashboard-card-title">Total Movimientos</div>
-            </CardHeader>
-            <CardContent>
-              <div className="dashboard-card-content">{totalMovimientos}</div>
-            </CardContent>
-          </div>
-        </div>
-        <div className="kpi-card">
-          <div className="dashboard-card">
-            <CardHeader>
-              <div className="dashboard-card-title">Total Gastos</div>
-            </CardHeader>
-            <CardContent>
-              <div className="dashboard-card-content">${totalGastos.toLocaleString()}</div>
-            </CardContent>
-          </div>
-        </div>
-        <div className="kpi-card">
-          <div className="dashboard-card">
-            <CardHeader>
-              <div className="dashboard-card-title">Total Comunidades</div>
-            </CardHeader>
-            <CardContent>
-              <div className="dashboard-card-content">{totalComunidades}</div>
-            </CardContent>
-          </div>
-        </div>
-      </div>
-
-       
-      {/* Charts Row */}
-      <div className="charts-row" style={{ display: 'flex', gap: '24px', marginBottom: '32px' }}>
-        <div className="dashboard-card" style={{ flex: 1 }}>
-          <CardHeader>
-            <div className="dashboard-card-title">Ejecución por Comunidad</div>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={executionData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="comunidad" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`$${value}M`, '']} />
-                <Bar dataKey="presupuesto" fill="#E2E8F0" name="Presupuesto" />
-                <Bar dataKey="ejecutado" fill="#3B82F6" name="Ejecutado" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </div>
-
-        <div className="dashboard-card" style={{ flex: 1 }}>
-          <CardHeader>
-            <div className="dashboard-card-title">Tipos de Proyecto</div>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={projectTypes}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  dataKey="value"
-                >
-                  {projectTypes.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => [`${value}%`, '']} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="d-flex flex-wrap gap-2 mt-3">
-              {projectTypes.map((type, index) => (
-                <div key={index} className="d-flex align-items-center gap-2">
-                  <div className="rounded-circle" style={{ width: '15px', height: '15px', backgroundColor: type.color }} />
-                  <span className="text-muted small">{type.name} ({type.value}%)</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </div>
-      </div>
-
-      {/* Pending Reports Table */}
-      <div className="dashboard-card" style={{ marginTop: '24px' }}>
-        <CardHeader>
-          <div className="dashboard-card-title">Rendiciones Pendientes</div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Comunidad</TableHead>
-                <TableHead>Proyecto</TableHead>
-                <TableHead>Monto</TableHead>
-                <TableHead>Documentos</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Vencimiento</TableHead>
-                <TableHead>Acción</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pendingReports.map((report, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{report.comunidad}</TableCell>
-                  <TableCell>{report.proyecto}</TableCell>
-                  <TableCell>{report.monto}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{report.documentos} archivos</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={report.estado === 'Pendiente' ? 'destructive' : 'secondary'}>
-                      {report.estado}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted">{report.vencimiento}</TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm">Revisar</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </div>
-  
-    </div>
-  );
-}
 
 export default Dashboard;

@@ -43,14 +43,14 @@ export default function Layout({ children }) {
           </nav>
         </aside>
         <div className="flex-1 flex flex-col">
-          <header className="bg-indigo text-white flex items-center justify-between px-8 py-4 border-b border-secondary rounded-lg rounded-b-none">
+          <header className="bg-indigo border-secondary text-white flex items-center justify-between px-8 py-4 border-b border-secondary rounded-lg rounded-b-none">
             <div>
               <h1 className="text-2xl font-bold">Gestión Comunidades</h1>
               <span className="text-blush text-sm"></span>
             </div>
-            <div className="relative">
+            <div className="relative ">
               <button
-                className="bg-secondary text-white px-4 py-2 rounded-lg shadow font-semibold flex items-center gap-2"
+                className="bg-indigo text-white px-4 py-2 rounded-lg shadow font-semibold flex items-center gap-2 hover:bg-taupe"
                 onClick={() => setMenuOpen((open) => !open)}
               >
                 {user?.nombre || user?.username || 'Usuario'}
@@ -66,7 +66,7 @@ export default function Layout({ children }) {
               )}
             </div>
           </header>
-          <main className="flex-1 p-8 bg-background">
+          <main className="flex-1 p-8 bg-background ">
             <div className="border border-secondary rounded-lg p-6 min-h-[70vh] bg-white shadow">
               {children}
             </div>

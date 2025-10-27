@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
+function formatMonto(monto) {
+  if (monto === undefined || monto === null || isNaN(monto)) return 'Sin datos aún';
+  return Number(monto).toLocaleString('es-CL', { maximumFractionDigits: 0 });
+}
+
 export default function Dashboard() {
   const [kpis, setKpis] = useState(null);
   const [proyectos, setProyectos] = useState(null);
@@ -32,7 +37,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 ">
       <h2 className="text-2xl font-bold text-deep-purple">Dashboard</h2>
       <p className="text-taupe">Resumen general de la gestión financiera</p>
       {/* KPIs */}
@@ -43,8 +48,8 @@ export default function Dashboard() {
           <>
             <div className="bg-white rounded-lg shadow p-6 flex flex-col gap-2 border border-gray-200">
               <div className="font-semibold text-taupe">Monto Total Asignado</div>
-              <div className="text-2xl font-bold text-indigo">{kpis.monto_total_asignado || 'Sin datos aún'}</div>
-              <div className="text-sm text-taupe">{kpis.monto_periodo_anterior || ''}</div>
+              <div className="text-2xl font-bold text-indigo">{formatMonto(kpis.monto_total_asignado)}</div>
+              <div className="text-sm text-taupe">{kpis.monto_periodo_anterior ? `+${formatMonto(kpis.monto_periodo_anterior)} del periodo anterior` : ''}</div>
             </div>
             <div className="bg-white rounded-lg shadow p-6 flex flex-col gap-2 border border-gray-200">
               <div className="font-semibold text-taupe">Cantidad de Proyectos</div>
@@ -53,12 +58,12 @@ export default function Dashboard() {
             </div>
             <div className="bg-white rounded-lg shadow p-6 flex flex-col gap-2 border border-gray-200">
               <div className="font-semibold text-taupe">Total Rendido</div>
-              <div className="text-2xl font-bold text-indigo">{kpis.total_rendido || 'Sin datos aún'}</div>
+              <div className="text-2xl font-bold text-indigo">{formatMonto(kpis.total_rendido)}</div>
               <div className="text-sm text-taupe">{kpis.porcentaje_rendido || ''}</div>
             </div>
             <div className="bg-white rounded-lg shadow p-6 flex flex-col gap-2 border border-gray-200">
               <div className="font-semibold text-taupe">Total Por Rendir</div>
-              <div className="text-2xl font-bold text-orange-600">{kpis.total_por_rendir || 'Sin datos aún'}</div>
+              <div className="text-2xl font-bold text-orange-600">{formatMonto(kpis.total_por_rendir)}</div>
               <div className="text-sm text-orange-600">{kpis.porcentaje_por_rendir || ''}</div>
             </div>
           </>
@@ -73,15 +78,15 @@ export default function Dashboard() {
         {kpis ? (
           <>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-indigo">Rendido: {kpis.total_rendido || 'Sin datos aún'}</span>
+              <span className="text-indigo">Rendido: {formatMonto(kpis.total_rendido)}</span>
               <span className="text-indigo">{kpis.porcentaje_rendido || ''}</span>
             </div>
             <div className="w-full h-3 bg-gray-200 rounded-full mb-2">
               <div className="h-3 bg-indigo rounded-full" style={{ width: kpis.porcentaje_rendido ? kpis.porcentaje_rendido : '0%' }}></div>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span>Monto Asignado<br /><span className="font-bold">{kpis.monto_total_asignado || 'Sin datos aún'}</span></span>
-              <span>Pendiente de Rendir<br /><span className="font-bold text-orange-600">{kpis.total_por_rendir || 'Sin datos aún'}</span></span>
+              <span>Monto Asignado<br /><span className="font-bold">{formatMonto(kpis.monto_total_asignado)}</span></span>
+              <span>Pendiente de Rendir<br /><span className="font-bold text-orange-600">{formatMonto(kpis.total_por_rendir)}</span></span>
             </div>
           </>
         ) : (
@@ -104,8 +109,8 @@ export default function Dashboard() {
                     <div className="font-semibold text-deep-purple">{p.nombre || 'Sin datos aún'}</div>
                     <span className={`px-3 py-1 rounded-lg text-white text-xs font-bold ${p.estado === 'Activo' ? 'bg-indigo' : 'bg-taupe'}`}>{p.estado || 'Sin datos aún'}</span>
                   </div>
-                  <div className="text-sm text-taupe">Presupuesto: {p.presupuesto ? `$${p.presupuesto.toLocaleString('es-CL')}` : 'Sin datos aún'}</div>
-                  <div className="text-sm text-taupe">Rendido: {p.rendido ? `$${p.rendido.toLocaleString('es-CL')}` : 'Sin datos aún'}</div>
+                  <div className="text-sm text-taupe">Presupuesto: {p.presupuesto ? `$${formatMonto(p.presupuesto)}` : 'Sin datos aún'}</div>
+                  <div className="text-sm text-taupe">Rendido: {p.rendido ? `$${formatMonto(p.rendido)}` : 'Sin datos aún'}</div>
                   <div className="w-full h-2 bg-gray-200 rounded-full">
                     <div className="h-2 bg-indigo rounded-full" style={{ width: `${porcentaje}%` }}></div>
                   </div>

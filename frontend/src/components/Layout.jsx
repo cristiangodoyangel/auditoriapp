@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const sidebarItems = [
   { name: 'Dashboard', path: '/dashboard' },
@@ -10,36 +10,68 @@ const sidebarItems = [
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/login');
+    window.location.reload();
+  };
 
   return (
   <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-  <header className="bg-secondary text-white px-6 py-4 flex justify-between items-center shadow">
-        <div>
-          <h1 className="font-bold text-xl">SaaS Gestión - Comunidades Lickanantay</h1>
-          <p className="text-blush text-sm">Financiado por Albemarle</p>
-        </div>
-        <button className="bg-taupe text-white px-4 py-2 rounded shadow">Salir</button>
-      </header>
       <div className="flex flex-1">
         {/* Sidebar */}
-        <aside className="w-64 bg-secondary text-white border-r border-border p-4 hidden md:block">
-          <nav className="space-y-2">
-            {sidebarItems.map(item => (
-              <Link
-                key={item.name}
-                to={item.path}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blush hover:text-white transition-colors"
-              >
-                <span>{item.name}</span>
-              </Link>
-            ))}
+        <aside className="w-64 bg-indigo text-white flex flex-col py-8 px-6 border-r border-secondary min-h-screen rounded-lg">
+          <nav className="flex-1">
+            <ul className="space-y-6">
+              <li>
+                <a href="/dashboard" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Dashboard</a>
+              </li>
+              <li>
+                <a href="/proyectos" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Proyectos</a>
+              </li>
+              <li>
+                <a href="/socios" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Socios</a>
+              </li>
+              <li>
+                <a href="/periodos" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Periodos</a>
+              </li>
+            </ul>
           </nav>
         </aside>
-        {/* Main Content */}
-        <main className="flex-1 p-6 bg-background border-2 border-secondary rounded-lg m-6 shadow">
-          {children}
-        </main>
+        <div className="flex-1 flex flex-col">
+          <header className="bg-indigo text-white flex items-center justify-between px-8 py-4 border-b border-secondary rounded-lg rounded-b-none">
+            <div>
+              <h1 className="text-2xl font-bold">Gestión Comunidades</h1>
+              <span className="text-blush text-sm"></span>
+            </div>
+            <div className="relative">
+              <button
+                className="bg-secondary text-white px-4 py-2 rounded-lg shadow font-semibold flex items-center gap-2"
+                onClick={() => setMenuOpen((open) => !open)}
+              >
+                {user?.nombre || user?.username || 'Usuario'}
+                <svg width="16" height="16" fill="currentColor" className="ml-1"><path d="M4 6l4 4 4-4"/></svg>
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 mt-2 w-40 bg-white text-indigo rounded-lg shadow-lg border border-secondary z-10">
+                  <button
+                    className="w-full text-left px-4 py-2 hover:bg-taupe rounded-lg"
+                    onClick={handleLogout}
+                  >Cerrar sesión</button>
+                </div>
+              )}
+            </div>
+          </header>
+          <main className="flex-1 p-8 bg-background">
+            <div className="border border-secondary rounded-lg p-6 min-h-[70vh] bg-white shadow">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

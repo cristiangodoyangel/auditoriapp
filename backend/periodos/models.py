@@ -11,4 +11,6 @@ class Periodo(models.Model):
     monto_anterior = models.DecimalField(max_digits=15, decimal_places=2, default=0)
 
     def __str__(self):
-        return f"{self.nombre} ({self.comunidad.nombre})"
+        if self.comunidad and self.comunidad.nombre:
+            return f"{self.nombre} ({self.comunidad.nombre})"
+        return f"{self.nombre}"

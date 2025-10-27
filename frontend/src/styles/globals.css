@@ -24,4 +24,9 @@ body {
 .text-taupe { color: var(--color-taupe); }
 .text-blush { color: var(--color-blush); }
 
+/* Custom hover para links del sidebar */
+.hover\:bg-taupe:hover {
+  background-color: var(--color-taupe) !important;
+}
+
 /* Puedes extender aquí más utilidades y estilos base */

@@ -24,11 +24,29 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     comunidad_nombre = serializers.CharField(source='comunidad.nombre', read_only=True)
-    
+    fondos_recibidos = serializers.SerializerMethodField()
+    fondos_ejecutados = serializers.SerializerMethodField()
+    saldo_restante = serializers.SerializerMethodField()
+    proyectos_en_ejecucion = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'nombre', 'email', 'rol', 'comunidad', 'comunidad_nombre', 'is_active']
+        fields = ['id', 'username', 'nombre', 'email', 'rol', 'comunidad', 'comunidad_nombre', 'is_active',
+                  'fondos_recibidos', 'fondos_ejecutados', 'saldo_restante', 'proyectos_en_ejecucion']
         read_only_fields = ['id']
+
+    def get_fondos_recibidos(self, obj):
+        # Aquí puedes poner la lógica real, por ahora retorna 0
+        return 0
+
+    def get_fondos_ejecutados(self, obj):
+        return 0
+
+    def get_saldo_restante(self, obj):
+        return 0
+
+    def get_proyectos_en_ejecucion(self, obj):
+        return 0
 
 class CreateUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)

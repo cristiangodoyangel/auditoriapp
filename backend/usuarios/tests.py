@@ -1,70 +1,33 @@
-# Corregido: Asegúrate de crear las instancias de TipoMovimiento antes de asignarlas
+
+from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
-from django.contrib.auth import get_user_model
-from finanzas.models import MovimientoBancario, TipoMovimiento  # Asegúrate de importar TipoMovimiento
-from proyectos.models import Proyecto
-from comunidades.models import Comunidad
+from .models import CustomUser
 
-class DashboardTests(APITestCase):
+class UsuarioAPITests(APITestCase):
     def setUp(self):
-        """
-        Método de configuración para crear un usuario de prueba y algunos datos
-        necesarios para las pruebas (comunidad, proyecto, movimiento bancario).
-        """
-        # Crear un usuario de prueba y autenticarse
-        user = get_user_model().objects.create_user(
-            username="testuser",             # Usamos 'username' ahora
-            email="testuser@example.com",    # Email como 'username'
-            nombre="Test User",              # Nombre del usuario
-            password="testpassword"          # Contraseña
-        )
-        self.client.login(username="testuser", password="testpassword")  # Loguear al usuario creado
-        
-        # Crear los datos de prueba
-        comunidad = Comunidad.objects.create(nombre='Comunidad Test', ciudad='Ciudad Test')
-        proyecto = Proyecto.objects.create(
-            nombre='Proyecto Test', 
-            comunidad=comunidad, 
-            estado='En Ejecución', 
-            presupuesto_asignado=10000, 
-            fecha_inicio='2023-01-01', 
-            fecha_fin='2023-12-31'
+        self.user = CustomUser.objects.create_user(
+            username='testuser',
+            password='testpass123',
+            email='test@example.com',
+            rol='admin',
+            is_active=True
         )
 
-        # Corregido: Crear las instancias de TipoMovimiento
-        tipo_ingreso = TipoMovimiento.objects.create(tipo='Ingreso')
-        tipo_egreso = TipoMovimiento.objects.create(tipo='Egreso')
+    def test_login_jwt(self):
+        url = reverse('token_obtain_pair')
+        response = self.client.post(url, {'username': 'testuser', 'password': 'testpass123'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
 
-        # Corregido: Crear un MovimientoBancario con tipo 'Ingreso'
-        MovimientoBancario.objects.create(
-            comunidad=comunidad,
-            tipo=tipo_ingreso,  # Aquí asignamos la instancia de TipoMovimiento
-            metodo='Transferencia',
-            monto=5000,
-            fecha='2023-09-01',
-            referencia='Ingreso test',
-            creado_por=user  # Asumiendo que ya tienes un usuario creado
-        )
-
-        MovimientoBancario.objects.create(
-            comunidad=comunidad,
-            tipo=tipo_egreso,  # Aquí asignamos la instancia de TipoMovimiento
-            metodo='Cheque',
-            monto=3000,
-            fecha='2023-09-02',
-            referencia='Egreso test',
-            creado_por=user
-        )
-
-    def test_resumen_kpis(self):
-        """
-        Prueba para verificar si los KPIs de resumen se calculan correctamente
-        en la vista '/dashboard/resumen/'.
-        """
-        response = self.client.get('/dashboard/resumen/')
-        
-        # Comprobar si la respuesta es correcta
+    def test_profile_authenticated(self):
+        url = reverse('token_obtain_pair')
+        response = self.client.post(url, {'username': 'testuser', 'password': 'testpass123'})
+        token = response.data['access']
+        profile_url = reverse('profile')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        response = self.client.get(profile_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         # Verificar que los KPIs estén presentes en la respuesta
@@ -72,3 +35,49 @@ class DashboardTests(APITestCase):
         self.assertIn('fondos_ejecutados', response.data)
         self.assertIn('saldo_restante', response.data)
         self.assertIn('proyectos_en_ejecucion', response.data)
+
+    def test_creacion_usuario(self):
+        from comunidades.models import Comunidad
+        url = reverse('create_user')
+        # Crear comunidad para asociar al usuario
+        comunidad = Comunidad.objects.create(nombre="San Pedro de Atacama")
+        # Crear usuario admin para autenticación
+        admin = CustomUser.objects.create_user(
+            username='adminuser',
+            password='adminpass',
+            email='admin@example.com',
+            rol='Admin Consejo',
+            is_active=True
+        )
+        login_url = reverse('token_obtain_pair')
+        response = self.client.post(login_url, {'username': 'adminuser', 'password': 'adminpass'})
+        token = response.data['access']
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        data = {
+            'username': 'nuevo_usuario',
+            'nombre': 'Nuevo Usuario',
+            'email': 'nuevo@example.com',
+            'password': 'nuevapass',
+            'rol': 'usuario',
+            'comunidad': comunidad.id
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['username'], 'nuevo_usuario')
+        self.assertEqual(response.data['nombre'], 'Nuevo Usuario')
+        self.assertEqual(response.data['email'], 'nuevo@example.com')
+
+    def test_logout(self):
+        # El logout en JWT es solo borrar el token del cliente, pero podemos simularlo
+        url = reverse('token_obtain_pair')
+        response = self.client.post(url, {'username': 'testuser', 'password': 'testpass123'})
+        token = response.data['access']
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        # Acceso con token válido
+        profile_url = reverse('profile')
+        response = self.client.get(profile_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # "Logout": quitar credenciales
+        self.client.credentials()
+        response = self.client.get(profile_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

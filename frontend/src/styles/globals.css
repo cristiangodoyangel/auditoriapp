@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+:root {
+  --color-deep-purple: #363237;
+  --color-indigo: #2D4262;
+  --color-taupe: #73605B;
+  --color-blush: #D09683;
+  --color-background: #f8f7f6;
+  --color-card: #fff;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-deep-purple);
+}
+
+/* Ejemplo de uso de la paleta en clases personalizadas */
+.bg-deep-purple { background-color: var(--color-deep-purple); }
+.bg-indigo { background-color: var(--color-indigo); }
+.bg-taupe { background-color: var(--color-taupe); }
+.bg-blush { background-color: var(--color-blush); }
+.text-deep-purple { color: var(--color-deep-purple); }
+.text-indigo { color: var(--color-indigo); }
+.text-taupe { color: var(--color-taupe); }
+.text-blush { color: var(--color-blush); }
+
+/* Puedes extender aquí más utilidades y estilos base */

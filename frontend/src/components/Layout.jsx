@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import logo from '../assets/logo.ico';
 import { Link, useNavigate } from 'react-router-dom';
 
 const sidebarItems = [
@@ -25,6 +26,10 @@ export default function Layout({ children }) {
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside className="w-64 bg-indigo text-white flex flex-col py-8 px-6 border-r border-secondary min-h-screen rounded-lg">
+          {/* Logo encima del menú */}
+          <div className="flex justify-center mb-8">
+            <img src={logo} alt="Logo" className="w-26 h-26" />
+          </div>
           <nav className="flex-1">
             <ul className="space-y-6">
               <li>

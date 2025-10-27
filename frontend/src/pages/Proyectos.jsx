@@ -46,9 +46,14 @@ export default function Proyectos() {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         let data = [];
-        if (res.ok) {
-          data = await res.json();
-          console.log('Respuesta cruda de proyectos:', data);
+        const status = res.status;
+        const text = await res.text();
+        console.log('Status respuesta proyectos:', status);
+        console.log('Texto respuesta proyectos:', text);
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = [];
         }
         setProyectos(data);
       } catch (err) {

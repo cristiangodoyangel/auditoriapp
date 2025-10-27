@@ -12,11 +12,8 @@ class ProyectoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        if self.request.user.rol == 'Admin Comunidad':
-            return Proyecto.objects.filter(comunidad=self.request.user.comunidad)
-        elif self.request.user.rol in ['Admin Consejo', 'Auditor']:
-            return Proyecto.objects.all()
-        return Proyecto.objects.none()
+        # Permitir que cualquier usuario autenticado vea todos los proyectos
+        return Proyecto.objects.all()
     
     def perform_create(self, serializer):
         if self.request.user.rol == 'Admin Comunidad':

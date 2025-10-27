@@ -7,39 +7,155 @@ function formatMonto(monto) {
 
 export default function Dashboard() {
   const [kpis, setKpis] = useState(null);
-  const [proyectos, setProyectos] = useState(null);
+  const [proyectos, setProyectos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [comunidadId, setComunidadId] = useState(null);
+  const [periodoVigente, setPeriodoVigente] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('access');
-    async function fetchData() {
+    let comunidadFromToken = null;
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user && user.comunidad && user.comunidad.id) {
+        comunidadFromToken = user.comunidad.id;
+      }
+    } catch {}
+
+    async function fetchProyectos() {
       setLoading(true);
       try {
-        // KPIs y progreso presupuestario
-        const resKpi = await fetch('http://localhost:8000/api/dashboard/', {
+        const res = await fetch('http://localhost:8000/api/proyectos/', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        const kpiData = await resKpi.ok ? await resKpi.json() : null;
-        setKpis(kpiData);
-        // Proyectos recientes
-        const resProy = await fetch('http://localhost:8000/api/proyectos/', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const proyData = await resProy.ok ? await resProy.json() : null;
-        setProyectos(proyData);
+        const data = await res.ok ? await res.json() : [];
+        setProyectos(data);
       } catch {
-        setKpis(null);
-        setProyectos(null);
+        setProyectos([]);
       }
       setLoading(false);
     }
-    fetchData();
+    async function fetchComunidad() {
+      try {
+        const res = await fetch('http://localhost:8000/api/auth/profile/', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.comunidad_id) {
+            setComunidadId(data.comunidad_id);
+          } else if (data.comunidad) {
+            setComunidadId(data.comunidad);
+          } else if (comunidadFromToken) {
+            setComunidadId(comunidadFromToken);
+          } else {
+            setComunidadId(null);
+          }
+        } else {
+          if (comunidadFromToken) {
+            setComunidadId(comunidadFromToken);
+          } else {
+            setComunidadId(null);
+          }
+        }
+      } catch {
+        if (comunidadFromToken) {
+          setComunidadId(comunidadFromToken);
+        } else {
+          setComunidadId(null);
+        }
+      }
+    }
+    async function fetchPeriodoVigente() {
+      try {
+        const res = await fetch('http://localhost:8000/api/periodos/periodos/', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const hoy = new Date().toISOString().slice(0, 10);
+          const vigente = data.find(p => {
+            const comunidadMatch = comunidadId ? String(p.comunidad) === String(comunidadId) : p.comunidad === null;
+            return p.fecha_inicio <= hoy && p.fecha_fin >= hoy && comunidadMatch;
+          });
+          if (vigente) setPeriodoVigente(vigente);
+        }
+      } catch {
+        setPeriodoVigente(null);
+      }
+    }
+    fetchProyectos();
+    fetchComunidad();
+    fetchPeriodoVigente();
   }, []);
 
   return (
     <div className="space-y-8 ">
-      <h2 className="text-2xl font-bold text-deep-purple">Dashboard</h2>
-      <p className="text-taupe">Resumen general de la gestión financiera</p>
+      {/* Cards de montos */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {loading ? (
+          <div className="col-span-3 text-center text-taupe">Cargando...</div>
+        ) : proyectos && comunidadId && periodoVigente ? (
+          (() => {
+            // Filtrar proyectos por comunidad y periodo vigente
+            const proyectosFiltrados = proyectos.filter(p => {
+              return String(p.comunidad) === String(comunidadId) && String(p.periodo) === String(periodoVigente.id);
+            });
+            const montoAsignado = proyectosFiltrados.reduce((acc, p) => acc + (parseFloat(p.presupuesto_total) || 0), 0);
+            const montoRendido = proyectosFiltrados.reduce((acc, p) => acc + (parseFloat(p.total_rendido) || 0), 0);
+            const montoPorRendir = montoAsignado - montoRendido;
+            return (
+              <>
+                <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center border border-gray-200">
+                  <div className="font-semibold text-taupe h-8 flex items-center justify-center">Monto Asignado</div>
+                  <div className="text-2xl font-bold text-indigo h-8 flex items-center justify-center">${formatMonto(montoAsignado)}</div>
+                </div>
+                <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center border border-gray-200">
+                  <div className="font-semibold text-taupe h-8 flex items-center justify-center">Monto Rendido</div>
+                  <div className="text-2xl font-bold text-green-600 h-8 flex items-center justify-center">${formatMonto(montoRendido)}</div>
+                </div>
+                <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center border border-gray-200">
+                  <div className="font-semibold text-taupe h-8 flex items-center justify-center">Monto por Rendir</div>
+                  <div className="text-2xl font-bold text-orange-600 h-8 flex items-center justify-center">${formatMonto(montoPorRendir)}</div>
+                </div>
+              </>
+            );
+          })()
+        ) : (
+          <div className="col-span-3 text-center text-taupe">Sin datos aún</div>
+        )}
+      </div>
+      <h2 className="text-2xl font-bold text-deep-purple"></h2>
+      <p className="text-taupe"></p>
+
+      {/* Cards resumen de proyectos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {loading ? (
+          <div className="col-span-4 text-center text-taupe">Cargando...</div>
+        ) : proyectos ? (
+          <>
+            <div className="bg-white rounded-lg shadow p-6 flex flex-col gap-2 border border-gray-200">
+                <div className="font-semibold text-taupe h-8 flex items-center justify-center">Proyectos Totales</div>
+                <div className="text-2xl font-bold text-taupe h-8 flex items-center justify-center">{proyectos.length}</div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6 flex flex-col gap-2 border border-gray-200">
+                <div className="font-semibold text-taupe h-8 flex items-center justify-center">Proyectos Aprobados</div>
+                <div className="text-2xl font-bold text-taupe h-8 flex items-center justify-center">{proyectos.filter(p => p.estado === 'Aprobado').length}</div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6 flex flex-col gap-2 border border-gray-200">
+                <div className="font-semibold text-taupe h-8 flex items-center justify-center">Proyectos Pendientes</div>
+                <div className="text-2xl font-bold text-taupe h-8 flex items-center justify-center">{proyectos.filter(p => p.estado === 'Pendiente').length}</div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6 flex flex-col gap-2 border border-gray-200">
+                <div className="font-semibold text-taupe h-8 flex items-center justify-center">Proyectos Rechazados</div>
+                <div className="text-2xl font-bold text-taupe h-8 flex items-center justify-center">{proyectos.filter(p => p.estado === 'Rechazado').length}</div>
+            </div>
+          </>
+        ) : (
+          <div className="col-span-4 text-center text-taupe">Sin datos aún</div>
+        )}
+      </div>
+
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {loading ? (

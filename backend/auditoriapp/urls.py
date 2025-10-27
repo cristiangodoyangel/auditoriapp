@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/documentos/', include('documentos.urls')),
     path('api/auditores/', include('auditores.urls')),
     path('api/reportes/', include('reportes.urls')),
+    path('api/rendiciones/', include('rendiciones.urls')),
     path('api/', include('proyectos.urls')),
     path('api/dashboard/', include('dashboard.urls')),
     path('', home),

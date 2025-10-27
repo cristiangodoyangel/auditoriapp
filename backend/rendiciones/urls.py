@@ -3,7 +3,7 @@ from .views import RendicionViewSet
 from django.urls import path, include
 
 router = DefaultRouter()
-router.register(r'rendiciones', RendicionViewSet, basename='rendicion')
+router.register(r'', RendicionViewSet, basename='rendicion')
 
 urlpatterns = [
     path('', include(router.urls)),

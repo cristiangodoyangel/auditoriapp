@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Proyectos from './pages/Proyectos';
 import Socios from './pages/Socios';
 import Periodos from './pages/Periodos';
+import Rendiciones from './pages/Rendiciones';
 import Login from './pages/Login';
 import CrearPeriodo from './pages/CrearPeriodo';
 import './App.css';
@@ -58,6 +59,7 @@ function App() {
           <Route path="/proyectos" element={<Proyectos />} />
           <Route path="/socios" element={<Socios />} />
           <Route path="/periodos" element={<Periodos />} />
+          <Route path="/rendiciones" element={<Rendiciones />} />
         </Routes>
       </Layout>
     </Router>

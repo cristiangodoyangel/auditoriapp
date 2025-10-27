@@ -3,7 +3,7 @@ from .views import DocumentoViewSet
 from django.urls import path, include
 
 router = DefaultRouter()
-router.register(r'documentos', DocumentoViewSet)
+router.register(r'', DocumentoViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

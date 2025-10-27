@@ -56,6 +56,14 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.boton-subir-acta {
+  background-color: #f10000 !important;
+}
+
+.boton-subir-acta:hover {
+  background-color: #0d09e9 !important;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -68,3 +76,4 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+

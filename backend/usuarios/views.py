@@ -6,6 +6,22 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.contrib.auth import authenticate
 from .serializers import CustomTokenObtainPairSerializer, UserSerializer, CreateUserSerializer
 from .models import CustomUser
+from periodos.models import Periodo
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def inicio_admin_comunidad(request):
+    user = request.user
+    # Validar si es admin de la comunidad
+    if user.rol != 'admin' or not user.comunidad:
+        return Response({'error': 'No tienes permisos de administrador de comunidad.'}, status=status.HTTP_403_FORBIDDEN)
+
+    periodo = Periodo.objects.periodo_actual(user.comunidad)
+    if periodo:
+        # Hay periodo activo, redireccionar a dashboard
+        return Response({'redirect': 'dashboard', 'periodo_id': periodo.id})
+    else:
+        # No hay periodo activo, redireccionar a crear periodo
+        return Response({'redirect': 'crear_periodo'})
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer

@@ -24,7 +24,31 @@ export default function Login({ onLogin }) {
         localStorage.setItem('access', data.access);
         localStorage.setItem('refresh', data.refresh);
         localStorage.setItem('user', JSON.stringify(data.user));
-        onLogin();
+
+        // Si el usuario es admin de comunidad, consultar periodo activo
+        if (data.user.rol === 'admin' && data.user.comunidad && data.user.comunidad.id) {
+          try {
+            const periodoRes = await fetch('http://localhost:8000/api/auth/inicio-admin-comunidad/', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${data.access}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            const periodoData = await periodoRes.json();
+            if (periodoData.redirect === 'dashboard') {
+              window.location.href = '/dashboard';
+            } else if (periodoData.redirect === 'crear_periodo') {
+              window.location.href = '/crear-periodo';
+            } else if (periodoData.error) {
+              setError(periodoData.error);
+            }
+          } catch (err) {
+            setError('Error verificando periodo activo');
+          }
+        } else {
+          onLogin();
+        }
       } else {
         setError(data.error || 'Credenciales incorrectas');
       }

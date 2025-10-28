@@ -11,5 +11,10 @@ class ConsejoViewSet(viewsets.ModelViewSet):
 	serializer_class = ConsejoSerializer
 
 class SocioViewSet(viewsets.ModelViewSet):
-	queryset = Socio.objects.all()
 	serializer_class = SocioSerializer
+
+	def get_queryset(self):
+		user = self.request.user
+		if hasattr(user, 'comunidad') and user.comunidad:
+			return Socio.objects.filter(comunidad=user.comunidad)
+		return Socio.objects.none()

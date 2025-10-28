@@ -13,7 +13,10 @@ class ProyectoViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         # Permitir que cualquier usuario autenticado vea todos los proyectos
-        return Proyecto.objects.all()
+        user = self.request.user
+        if hasattr(user, 'comunidad') and user.comunidad:
+            return Proyecto.objects.filter(comunidad=user.comunidad)
+        return Proyecto.objects.none()
     
     def perform_create(self, serializer):
         if self.request.user.rol == 'Admin Comunidad':

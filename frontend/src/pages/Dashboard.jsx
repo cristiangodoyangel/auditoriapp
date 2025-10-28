@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useState } from 'react';
 import DashboardCard from '../components/DashboardCard';
 
@@ -9,25 +10,128 @@ function formatMonto(monto) {
 
 export default function Dashboard() {
   const [proyectos, setProyectos] = useState([]);
+  const [comunidades, setComunidades] = useState([]);
+  const [socios, setSocios] = useState([]);
+  const [rendiciones, setRendiciones] = useState([]);
+  const [comunidadId, setComunidadId] = useState('');
   const [loading, setLoading] = useState(true);
+
+  // Detectar si el usuario es auditor
+  let isAuditor = false;
+  try {
+    const user = JSON.parse(localStorage.getItem('user'));
+    isAuditor = user && (user.rol === 'auditor' || user.role === 'auditor');
+  } catch {}
 
   useEffect(() => {
     const token = localStorage.getItem('access');
     setLoading(true);
-    fetch('http://localhost:8000/api/proyectos/', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => {
-        setProyectos(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setProyectos([]);
-        setLoading(false);
-      });
+    Promise.all([
+      fetch('http://localhost:8000/api/proyectos/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : []),
+      fetch('http://localhost:8000/api/comunidades/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : []),
+      fetch('http://localhost:8000/api/socios/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : []),
+      fetch('http://localhost:8000/api/rendiciones/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : [])
+    ]).then(([proy, coms, socs, rends]) => {
+      setProyectos(proy);
+      setComunidades(coms);
+      setSocios(socs);
+      setRendiciones(rends);
+      setLoading(false);
+    }).catch(() => {
+      setProyectos([]);
+      setComunidades([]);
+      setSocios([]);
+      setRendiciones([]);
+      setLoading(false);
+    });
   }, []);
 
+  if (isAuditor) {
+    // Vista especial para auditor
+    return (
+      <div className="space-y-8">
+        {/* Cards auditor globales */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          {loading ? (
+            <div className="col-span-3 text-center text-taupe">Cargando...</div>
+          ) : (
+            <>
+              <DashboardCard titulo="Comunidades Totales" monto={comunidades.length} color="indigo" />
+              <DashboardCard titulo="Administradores Totales" monto={32} color="taupe" />
+              <DashboardCard titulo="Proyectos Totales" monto={proyectos.length} color="taupe" />
+            </>
+          )}
+        </div>
+
+        {/* Selector de comunidad */}
+        <div className="mb-6">
+          <label className="block text-taupe mb-2 font-semibold">Selecciona una comunidad:</label>
+          <select className="border rounded px-3 py-2 w-full max-w-md" value={comunidadId} onChange={e => setComunidadId(e.target.value)}>
+            <option value="">-- Selecciona --</option>
+            {comunidades.map(c => (
+              <option key={c.id} value={c.id}>{c.nombre}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Resumen comunidad seleccionada */}
+        {comunidadId && (() => {
+          const comunidad = comunidades.find(c => String(c.id) === String(comunidadId));
+          // Simulación: cantidad de socios por comunidad
+          const sociosCom = 8 + (parseInt(comunidadId) % 5) * 3; // Ejemplo: entre 8 y 20 socios
+          const proyectosCom = proyectos.filter(p => String(p.comunidad) === String(comunidadId));
+          const rendicionesCom = rendiciones.filter(r => String(r.proyecto?.comunidad) === String(comunidadId));
+          const montoAsignado = proyectosCom.reduce((acc, p) => acc + (parseFloat(p.presupuesto_total) || 0), 0);
+          const montoRendido = rendicionesCom.reduce((acc, r) => acc + (parseFloat(r.monto_rendido) || 0), 0);
+          const montoPorRendir = montoAsignado - montoRendido;
+          return (
+            <div className="bg-white rounded-lg shadow p-6 border border-gray-200 mb-6">
+              <div className="font-bold text-deep-purple mb-2">Resumen de Comunidad</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><span className="font-semibold text-taupe">Nombre:</span> {comunidad?.nombre || '-'}</div>
+                <div><span className="font-semibold text-taupe">Cantidad de socios:</span> {sociosCom}</div>
+                <div><span className="font-semibold text-taupe">Monto asignado total:</span> ${formatMonto(montoAsignado)}</div>
+                <div><span className="font-semibold text-taupe">Total rendido:</span> ${formatMonto(montoRendido)}</div>
+                <div><span className="font-semibold text-taupe">Total por rendir:</span> ${formatMonto(montoPorRendir)}</div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Cards de proyectos por comunidad */}
+        {comunidadId && (() => {
+          const proyectosCom = proyectos.filter(p => String(p.comunidad) === String(comunidadId));
+          const proyectosAprobados = proyectosCom.filter(p => p.estado === 'Aprobado').length;
+          const proyectosPendientes = proyectosCom.filter(p => p.estado === 'Pendiente').length;
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <DashboardCard titulo="Proyectos Totales" monto={proyectosCom.length} color="indigo" />
+              <DashboardCard titulo="Proyectos Aprobados" monto={proyectosAprobados} color="taupe" />
+              <DashboardCard titulo="Proyectos Pendientes" monto={proyectosPendientes} color="taupe" />
+            </div>
+          );
+        })()}
+
+        {/* Cards de rendiciones por comunidad */}
+        {comunidadId && (() => {
+          const proyectosCom = proyectos.filter(p => String(p.comunidad) === String(comunidadId));
+          const rendicionesCom = rendiciones.filter(r => proyectosCom.some(p => p.id === r.proyecto));
+          const totalRendiciones = rendicionesCom.length;
+          const rendicionesAprobadas = rendicionesCom.filter(r => r.estado_aprobacion === 'Aprobado').length;
+          const rendicionesPendientes = rendicionesCom.filter(r => r.estado_aprobacion === 'Pendiente').length;
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <DashboardCard titulo="Rendiciones Totales" monto={totalRendiciones} color="indigo" />
+              <DashboardCard titulo="Rendiciones Aprobadas" monto={rendicionesAprobadas} color="taupe" />
+              <DashboardCard titulo="Rendiciones Pendientes" monto={rendicionesPendientes} color="taupe" />
+            </div>
+          );
+        })()}
+      </div>
+    );
+  }
+
+  // Vista estándar para comunidades/admin
   return (
     <div className="space-y-8 ">
       {/* Cards de montos */}

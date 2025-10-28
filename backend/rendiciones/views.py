@@ -4,6 +4,11 @@ from .models import Rendicion
 from .serializers import RendicionSerializer
 
 class RendicionViewSet(viewsets.ModelViewSet):
-    queryset = Rendicion.objects.all()
     serializer_class = RendicionSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'comunidad') and user.comunidad:
+            return Rendicion.objects.filter(proyecto__comunidad=user.comunidad)
+        return Rendicion.objects.none()
     permission_classes = [AllowAny]

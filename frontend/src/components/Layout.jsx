@@ -52,9 +52,9 @@ export default function Layout({ children }) {
         </aside>
         <div className="flex-1 flex flex-col">
           <header className="bg-indigo border-secondary text-white flex items-center justify-between px-8 py-4 border-b border-secondary rounded-lg rounded-b-none">
-            <div>
+            <div className="flex flex-col items-start">
               <h1 className="text-2xl font-bold">Gestión Comunidades</h1>
-              <span className="text-blush text-lg font-semibold">
+              <span className="text-blush text-lg font-semibold mt-1">
                 {user?.es_auditor ? 'Auditores' : (user?.comunidad?.nombre || user?.comunidad_nombre || '')}
               </span>
             </div>

@@ -1,3 +1,12 @@
+function formatFechaCL(fecha) {
+  if (!fecha) return '';
+  const d = new Date(fecha);
+  if (isNaN(d)) return fecha;
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+}
 import React, { useEffect, useState } from 'react';
 
 function esPeriodoActual(periodo) {
@@ -66,20 +75,19 @@ export default function Periodos() {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-2xl font-bold text-deep-purple">Periodos Financieros</h2>
-      <p className="text-taupe">Gestión de periodos y asignaciones presupuestarias</p>
-      {loading ? (
+        {loading ? (
         <div className="text-center text-taupe">Cargando...</div>
       ) : (
         <>
           {periodoActual && (
-            <div className="bg-indigo text-white rounded-lg p-6 mb-6 shadow border-2 border-indigo">
-              <div className="text-lg font-bold">Periodo Actual</div>
-              <div className="font-semibold">{periodoActual.nombre}</div>
-              <div>Inicio: {periodoActual.fecha_inicio}</div>
-              <div>Fin: {periodoActual.fecha_fin}</div>
-              <div>Monto Asignado: ${formatMonto(periodoActual.monto_asignado)}</div>
-              
+            <div className="periodo-card">
+              <div className="periodo-card-separator"></div>
+              <div className="periodo-card-title">Periodo Actual</div>
+              <div className="periodo-card-subtitle">{periodoActual.nombre}</div>
+              <div className="periodo-card-data">Inicio: {formatFechaCL(periodoActual.fecha_inicio)}</div>
+              <div className="periodo-card-data">Fin: {formatFechaCL(periodoActual.fecha_fin)}</div>
+              <div className="periodo-card-data font-bold">Monto Asignado: ${formatMonto(periodoActual.monto_asignado)}</div>
+             
             </div>
           )}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
@@ -115,8 +123,8 @@ export default function Periodos() {
                 {pagedPeriodos.map((p, idx) => (
                   <tr key={p.id} className={esPeriodoActual(p) ? 'bg-indigo/10 font-bold' : ''}>
                     <td className="px-4 py-2 text-left">{p.nombre}</td>
-                    <td className="px-4 py-2 text-left">{p.fecha_inicio}</td>
-                    <td className="px-4 py-2 text-left">{p.fecha_fin}</td>
+                    <td className="px-4 py-2 text-left">{formatFechaCL(p.fecha_inicio)}</td>
+                    <td className="px-4 py-2 text-left">{formatFechaCL(p.fecha_fin)}</td>
                     <td className="px-4 py-2 text-left">${formatMonto(p.monto_asignado)}</td>
                     <td className="px-4 py-2 text-left">
                       {esPeriodoActual(p) ? (

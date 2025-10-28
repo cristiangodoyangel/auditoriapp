@@ -27,6 +27,8 @@ export default function Periodos() {
   const [page, setPage] = useState(1);
   const [rowsPerPage] = useState(5);
   const [asc, setAsc] = useState(false);
+  const [montoAnteriorEdit, setMontoAnteriorEdit] = useState('');
+  const [editandoMonto, setEditandoMonto] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('access');
@@ -77,7 +79,50 @@ export default function Periodos() {
               <div>Inicio: {periodoActual.fecha_inicio}</div>
               <div>Fin: {periodoActual.fecha_fin}</div>
               <div>Monto Asignado: ${formatMonto(periodoActual.monto_asignado)}</div>
-              <div>Monto Anterior: ${formatMonto(periodoActual.monto_anterior)}</div>
+              <div className="flex items-center gap-2 mt-2">
+                <span>Monto Disponible del Periodo Anterior:</span>
+                {editandoMonto ? (
+                  <>
+                    <input
+                      type="number"
+                      className="border rounded px-2 py-1 text-black"
+                      value={montoAnteriorEdit}
+                      onChange={e => setMontoAnteriorEdit(e.target.value)}
+                    />
+                    <button
+                      className="bg-white text-indigo px-2 py-1 rounded font-bold border"
+                      onClick={async () => {
+                        const token = localStorage.getItem('access');
+                        try {
+                          const res = await fetch(`http://localhost:8000/api/periodos/periodos/${periodoActual.id}/`, {
+                            method: 'PATCH',
+                            headers: {
+                              'Authorization': `Bearer ${token}`,
+                              'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ monto_anterior: montoAnteriorEdit })
+                          });
+                          if (res.ok) {
+                            const actualizado = await res.json();
+                            setPeriodos(periodos.map(p => p.id === actualizado.id ? actualizado : p));
+                            setEditandoMonto(false);
+                          } else {
+                            alert('Error al guardar el monto anterior');
+                          }
+                        } catch {
+                          alert('Error de red al guardar el monto anterior');
+                        }
+                      }}
+                    >Guardar</button>
+                    <button className="bg-white text-taupe px-2 py-1 rounded font-bold border" onClick={() => setEditandoMonto(false)}>Cancelar</button>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-bold text-2xl">${formatMonto(periodoActual.monto_anterior)}</span>
+                    <button className="bg-white text-indigo px-2 py-1 rounded font-bold border ml-2" onClick={() => { setMontoAnteriorEdit(periodoActual.monto_anterior); setEditandoMonto(true); }}>Editar</button>
+                  </>
+                )}
+              </div>
             </div>
           )}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">

@@ -305,6 +305,7 @@ export default function Proyectos() {
                   <th className="px-4 py-2 text-left">Estado</th>
                   <th className="px-4 py-2 text-left">Estado Rendición</th>
                   <th className="px-4 py-2 text-left">Falta por Rendir</th>
+                  <th className="px-4 py-2 text-left">Documentos</th>
                 </tr>
               </thead>
               <tbody>
@@ -313,6 +314,7 @@ export default function Proyectos() {
                   const presupuesto = p.presupuesto_total || p.presupuesto || 0;
                   const montoRendido = p.monto_rendido || 0;
                   const faltaPorRendir = Number(presupuesto) - Number(montoRendido);
+                  // Documentos: p.acta, p.cotizaciones, p.elegido (pueden ser null o string con url)
                   return (
                     <tr key={p.id}>
                       <td className="px-4 py-2">{p.nombre}</td>
@@ -320,6 +322,15 @@ export default function Proyectos() {
                       <td className="px-4 py-2">{p.estado || 'Sin datos'}</td>
                       <td className="px-4 py-2">{p.estado_rendicion || 'Sin datos'}</td>
                       <td className="px-4 py-2">${formatMonto(faltaPorRendir)}</td>
+                      <td className="px-4 py-2 space-x-2">
+                        {p.acta_url ? (
+                          <a href={p.acta_url} target="_blank" rel="noopener noreferrer" className="inline-block bg-indigo text-white px-2 py-1 rounded text-xs font-semibold hover:bg-taupe" download>
+                            Acta
+                          </a>
+                        ) : (
+                          <span className="text-xs text-taupe">Sin docs</span>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}

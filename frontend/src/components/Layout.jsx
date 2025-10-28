@@ -58,7 +58,7 @@ export default function Layout({ children }) {
               </li>
               <li>
                 <a href="/rendiciones" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Rendiciones</a>
-              </li>receurad
+              </li>
                  <li>
                 <a href="/periodos" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Periodos</a>
               </li>

@@ -24,7 +24,7 @@ export default function Socios() {
 
   React.useEffect(() => {
     const token = localStorage.getItem('access');
-    fetch('http://localhost:8000/api/socios/', {
+  fetch('http://localhost:8000/api/comunidades/socios/', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.ok ? res.json() : [])

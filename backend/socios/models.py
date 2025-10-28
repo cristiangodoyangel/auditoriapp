@@ -7,6 +7,7 @@ class Socio(models.Model):
     direccion = models.CharField(max_length=200)
     telefono = models.CharField(max_length=20)
     activo = models.BooleanField(default=True)
+    comunidad = models.ForeignKey('comunidades.Comunidad', on_delete=models.CASCADE, related_name='socios')
 
     def __str__(self):
         return f"{self.nombre} {self.apellido} ({self.rut})"

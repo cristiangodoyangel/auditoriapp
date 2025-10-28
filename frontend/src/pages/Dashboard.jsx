@@ -30,7 +30,7 @@ export default function Dashboard() {
     Promise.all([
       fetch('http://localhost:8000/api/proyectos/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : []),
       fetch('http://localhost:8000/api/comunidades/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : []),
-      fetch('http://localhost:8000/api/socios/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : []),
+  fetch('http://localhost:8000/api/comunidades/socios/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : []),
       fetch('http://localhost:8000/api/rendiciones/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : []),
       fetch('http://localhost:8000/api/periodos/periodos/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : [])
     ]).then(([proy, coms, socs, rends, pers]) => {

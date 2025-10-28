@@ -107,7 +107,7 @@ export default function Periodos() {
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white rounded-lg shadow border border-gray-200">
-              <thead className="bg-gray-100">
+              <thead className="bg-taupe text-white">
                 <tr>
                   <th className="px-4 py-2 text-left">Nombre</th>
                   <th className="px-4 py-2 text-left">Inicio</th>
@@ -121,14 +121,14 @@ export default function Periodos() {
                   <tr><td colSpan={6} className="text-center text-taupe py-4">Sin datos aún</td></tr>
                 )}
                 {pagedPeriodos.map((p, idx) => (
-                  <tr key={p.id} className={esPeriodoActual(p) ? 'bg-indigo/10 font-bold' : ''}>
+                  <tr key={p.id} className={esPeriodoActual(p) ? 'bg-indigo/10' : ''}>
                     <td className="px-4 py-2 text-left">{p.nombre}</td>
                     <td className="px-4 py-2 text-left">{formatFechaCL(p.fecha_inicio)}</td>
                     <td className="px-4 py-2 text-left">{formatFechaCL(p.fecha_fin)}</td>
                     <td className="px-4 py-2 text-left">${formatMonto(p.monto_asignado)}</td>
                     <td className="px-4 py-2 text-left">
                       {esPeriodoActual(p) ? (
-                        <span className="bg-indigo text-white px-2 py-1 rounded-lg text-xs">Actual</span>
+                        <span className="bg-blush text-deep-purple font-bold px-2 py-1 rounded-lg text-xs">Actual</span>
                       ) : (
                         <span className="bg-taupe text-white px-2 py-1 rounded-lg text-xs">Finalizado</span>
                       )}

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 
-export default function CrearPeriodo({ montoAnterior = 0, onPeriodoCreado }) {
+export default function CrearPeriodo({ onPeriodoCreado }) {
   const [nombre, setNombre] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [montoAlbemarle, setMontoAlbemarle] = useState('');
+  const [montoAnterior, setMontoAnterior] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +25,7 @@ export default function CrearPeriodo({ montoAnterior = 0, onPeriodoCreado }) {
           nombre,
           fecha_inicio: fechaInicio,
           fecha_fin: fechaFin,
-          monto_asignado: montoAlbemarle,
+          monto_asignado: Number(montoAlbemarle) + Number(montoAnterior),
           monto_anterior: montoAnterior,
         }),
       });
@@ -45,9 +46,13 @@ export default function CrearPeriodo({ montoAnterior = 0, onPeriodoCreado }) {
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg border border-secondary">
         <h2 className="text-2xl font-bold mb-2 text-indigo">Crear Nuevo Periodo</h2>
         <p className="mb-4 text-taupe">Ingresa los datos del periodo y el monto asignado por Albemarle</p>
-        <div className="mb-4 bg-blue-50 border border-indigo rounded-lg p-4">
-          <div className="text-taupe font-semibold">Monto Disponible del Periodo Anterior</div>
-          <div className="text-2xl font-bold text-indigo">${montoAnterior.toLocaleString('es-CL')}</div>
+        <div className="mb-4">
+          <label className="block text-taupe mb-2">Monto Disponible del Periodo Anterior</label>
+          <div className="flex items-center gap-2">
+            <span className="text-indigo text-xl">$</span>
+            <input type="number" className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-indigo" value={montoAnterior} onChange={e => setMontoAnterior(Number(e.target.value))} min="0" />
+          </div>
+          <span className="text-sm text-taupe">Ingresa el monto en pesos chilenos (CLP)</span>
         </div>
         <div className="mb-4">
           <label className="block text-taupe mb-2">Nombre del Periodo</label>

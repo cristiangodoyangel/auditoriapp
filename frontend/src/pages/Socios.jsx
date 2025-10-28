@@ -13,11 +13,17 @@ function formatFechaCL(fecha) {
 }
 
 export default function Socios() {
-  // Detectar si el usuario es admin
+  // Detectar si el usuario es admin y obtener comunidad
   let isAdmin = false;
+  let comunidadId = null;
   try {
     const user = JSON.parse(localStorage.getItem('user'));
     isAdmin = user && (user.rol === 'admin' || user.role === 'admin');
+    if (user && user.comunidad && user.comunidad.id) {
+      comunidadId = user.comunidad.id;
+    } else if (user && user.comunidad_id) {
+      comunidadId = user.comunidad_id;
+    }
   } catch {}
 
   const [socios, setSocios] = useState([]);
@@ -38,12 +44,47 @@ export default function Socios() {
 
   // Función para agregar socio
   function handleAgregar() {
-    setEditando('nuevo');
-    setNuevoSocio({nombre:'',apellido:'',rut:'',direccion:'',telefono:'',activo:true});
+  setEditando('nuevo');
+  setNuevoSocio({nombre:'',apellido:'',rut:'',direccion:'',telefono:'',activo:true, comunidad: comunidadId});
   }
   function handleGuardarNuevo() {
-    setSocios([...socios, {...nuevoSocio, id: socios.length+1}]);
-    setEditando(null);
+    const token = localStorage.getItem('access');
+    const formData = new FormData();
+    formData.append('nombre', nuevoSocio.nombre);
+    formData.append('apellido', nuevoSocio.apellido);
+    formData.append('rut', nuevoSocio.rut);
+    formData.append('direccion', nuevoSocio.direccion);
+    formData.append('telefono', nuevoSocio.telefono);
+    formData.append('activo', nuevoSocio.activo);
+    formData.append('comunidad', nuevoSocio.comunidad);
+    // Si en el futuro hay archivo mp4: if (nuevoSocio.mp4) formData.append('mp4', nuevoSocio.mp4);
+
+    console.log('[Socios] Guardando socio:', nuevoSocio);
+    console.log('[Socios] FormData:', Array.from(formData.entries()));
+
+    fetch('http://localhost:8000/api/comunidades/socios/', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    })
+      .then(async res => {
+        console.log('[Socios] Respuesta status:', res.status);
+        if (res.ok) {
+          const data = await res.json();
+          console.log('[Socios] Socio guardado correctamente:', data);
+          setSocios([...socios, data]);
+        } else {
+          const errorText = await res.text();
+          console.log('[Socios] Error al guardar socio, respuesta:', errorText);
+          alert('Error al guardar socio');
+        }
+        setEditando(null);
+      })
+      .catch((err) => {
+        console.log('[Socios] Error de red al guardar socio:', err);
+        alert('Error de red al guardar socio');
+        setEditando(null);
+      });
   }
   function handleEditar(socio) {
     if (!isAdmin) return;

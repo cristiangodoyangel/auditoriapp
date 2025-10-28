@@ -26,19 +26,28 @@ export default function Proyectos() {
   let isAuditor = false;
   try {
     const user = JSON.parse(localStorage.getItem('user'));
+    console.log('[DEBUG] Usuario en localStorage:', user);
     isAuditor = user && (user.rol === 'auditor' || user.role === 'auditor');
-  } catch {}
+    console.log('[DEBUG] isAuditor:', isAuditor);
+  } catch (err) {
+    console.log('[DEBUG] Error al leer usuario de localStorage:', err);
+  }
 
   useEffect(() => {
     const token = localStorage.getItem('access');
+    console.log('[DEBUG] Token:', token);
     // Intentar obtener comunidad desde el token guardado
     let comunidadFromToken = null;
     try {
       const user = JSON.parse(localStorage.getItem('user'));
+      console.log('[DEBUG] user para comunidadFromToken:', user);
       if (user && user.comunidad && user.comunidad.id) {
         comunidadFromToken = user.comunidad.id;
+        console.log('[DEBUG] comunidadFromToken:', comunidadFromToken);
       }
-    } catch {}
+    } catch (err) {
+      console.log('[DEBUG] Error al obtener comunidadFromToken:', err);
+    }
     async function fetchProyectos() {
       setLoading(true);
       try {
@@ -48,16 +57,17 @@ export default function Proyectos() {
         let data = [];
         const status = res.status;
         const text = await res.text();
-        console.log('Status respuesta proyectos:', status);
-        console.log('Texto respuesta proyectos:', text);
+        console.log('[DEBUG] Status respuesta proyectos:', status);
+        console.log('[DEBUG] Texto respuesta proyectos:', text);
         try {
           data = JSON.parse(text);
-        } catch {
+        } catch (err) {
+          console.log('[DEBUG] Error al parsear proyectos:', err);
           data = [];
         }
         setProyectos(data);
       } catch (err) {
-        console.error('Error al obtener proyectos:', err);
+        console.error('[DEBUG] Error al obtener proyectos:', err);
         setProyectos([]);
       }
       setLoading(false);
@@ -67,53 +77,108 @@ export default function Proyectos() {
         const res = await fetch('http://localhost:8000/api/auth/profile/', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
+        console.log('[DEBUG] fetchComunidad status:', res.status);
         if (res.ok) {
           const data = await res.json();
+          console.log('[DEBUG] fetchComunidad data:', data);
           if (data.comunidad_id) {
             setComunidadId(data.comunidad_id);
+            console.log('[DEBUG] comunidadId por comunidad_id:', data.comunidad_id);
           } else if (data.comunidad) {
             setComunidadId(data.comunidad);
+            console.log('[DEBUG] comunidadId por comunidad:', data.comunidad);
           } else if (comunidadFromToken) {
             setComunidadId(comunidadFromToken);
+            console.log('[DEBUG] comunidadId por comunidadFromToken:', comunidadFromToken);
           } else {
             setComunidadId(null);
-            console.error('No se encontró comunidad en el usuario:', data);
+            console.error('[DEBUG] No se encontró comunidad en el usuario:', data);
           }
         } else {
           if (comunidadFromToken) {
             setComunidadId(comunidadFromToken);
+            console.log('[DEBUG] comunidadId por comunidadFromToken (error):', comunidadFromToken);
           } else {
             setComunidadId(null);
-            console.error('Error al obtener usuario:', res.status);
+            console.error('[DEBUG] Error al obtener usuario:', res.status);
           }
         }
       } catch (err) {
         if (comunidadFromToken) {
           setComunidadId(comunidadFromToken);
+          console.log('[DEBUG] comunidadId por comunidadFromToken (catch):', comunidadFromToken);
         } else {
           setComunidadId(null);
-          console.error('Error de red al obtener comunidad:', err);
+          console.error('[DEBUG] Error de red al obtener comunidad:', err);
         }
       }
     }
     async function fetchPeriodoVigente() {
+      let user = null;
+      try {
+        user = JSON.parse(localStorage.getItem('user'));
+        console.log('[DEBUG] fetchPeriodoVigente user:', user);
+        console.log('[DEBUG] Valor de user.rol:', user ? user.rol : undefined);
+        console.log('[DEBUG] Condición admin:', user && user.rol === 'admin' && user.comunidad && user.comunidad.id);
+      } catch (err) {
+        console.log('[DEBUG] Error al leer user en fetchPeriodoVigente:', err);
+      }
+      if (user && user.rol === 'admin' && user.comunidad && user.comunidad.id) {
+        // Usar endpoint especial para admin de comunidad
+        try {
+          const res = await fetch('http://localhost:8000/api/auth/inicio-admin-comunidad/', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          console.log('[DEBUG] fetchPeriodoVigente (admin) status:', res.status);
+          const text = await res.text();
+          console.log('[DEBUG] fetchPeriodoVigente (admin) raw text:', text);
+          let data = {};
+          try {
+            data = JSON.parse(text);
+          } catch (err) {
+            console.log('[DEBUG] Error parseando JSON periodo admin:', err);
+          }
+          console.log('[DEBUG] fetchPeriodoVigente (admin) data:', data);
+          if (data.periodo && data.periodo.id) {
+            setPeriodoVigente(data.periodo);
+            console.log('[DEBUG] periodoVigente (admin):', data.periodo);
+            return;
+          } else {
+            console.log('[DEBUG] No se encontró periodo en respuesta admin:', data);
+          }
+        } catch (err) {
+          setPeriodoVigente(null);
+          console.log('[DEBUG] Error en fetchPeriodoVigente (admin):', err);
+        }
+      }
+      // Lógica estándar para otros usuarios
       try {
         const res = await fetch('http://localhost:8000/api/periodos/periodos/', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
+        console.log('[DEBUG] fetchPeriodoVigente (normal) status:', res.status);
         if (res.ok) {
           const data = await res.json();
-          // Buscar periodo vigente por fechas y comunidad
+          console.log('[DEBUG] fetchPeriodoVigente (normal) data:', data);
           const hoy = new Date().toISOString().slice(0, 10);
+          console.log('[DEBUG] Fecha actual (hoy):', hoy);
+          console.log('[DEBUG] comunidadId en periodo:', comunidadId);
           const vigente = data.find(p => {
-            // comunidad puede ser null, string o número
             const comunidadMatch = comunidadId ? String(p.comunidad) === String(comunidadId) : p.comunidad === null;
+            console.log('[DEBUG] periodo:', p, 'comunidadMatch:', comunidadMatch);
             return p.fecha_inicio <= hoy && p.fecha_fin >= hoy && comunidadMatch;
           });
-          if (vigente) setPeriodoVigente(vigente);
+          if (vigente) {
+            setPeriodoVigente(vigente);
+            console.log('[DEBUG] periodoVigente (normal):', vigente);
+          } else {
+            console.log('[DEBUG] No se encontró periodo vigente');
+          }
         }
       } catch (err) {
         setPeriodoVigente(null);
+        console.log('[DEBUG] Error en fetchPeriodoVigente (normal):', err);
       }
     }
     fetchProyectos();
@@ -134,29 +199,38 @@ export default function Proyectos() {
   const handleCrearProyecto = async e => {
     e.preventDefault();
     const token = localStorage.getItem('access');
+    console.log('[DEBUG] handleCrearProyecto comunidadId:', comunidadId);
+    console.log('[DEBUG] handleCrearProyecto periodoVigente:', periodoVigente);
     if (!comunidadId) {
       alert('No se pudo obtener la comunidad del usuario.');
+      console.log('[DEBUG] ERROR: comunidadId no disponible');
       return;
     }
-    // Asignar periodo artificialmente con valor 2
+    if (!periodoVigente || !periodoVigente.id) {
+      alert('No se pudo obtener el periodo vigente.');
+      console.log('[DEBUG] ERROR: periodoVigente no disponible', periodoVigente);
+      return;
+    }
+    // Formatear presupuesto_total como string con decimales
+    const presupuestoFormateado = Number(nuevoProyecto.presupuesto_total).toFixed(2);
+    console.log('[DEBUG] Formulario nuevoProyecto:', nuevoProyecto);
+    console.log('[DEBUG] presupuestoFormateado:', presupuestoFormateado);
     const formData = new FormData();
     formData.append('nombre', nuevoProyecto.nombre);
     formData.append('descripcion', nuevoProyecto.descripcion);
-    formData.append('periodo', 2);
+    formData.append('periodo', periodoVigente.id);
     formData.append('fecha_inicio', nuevoProyecto.fecha_inicio);
     formData.append('fecha_fin', nuevoProyecto.fecha_fin);
-    formData.append('presupuesto_total', nuevoProyecto.presupuesto_total);
+    formData.append('presupuesto_total', presupuestoFormateado);
     formData.append('estado', nuevoProyecto.estado);
     formData.append('estado_rendicion', nuevoProyecto.estado_rendicion);
     formData.append('comunidad', comunidadId);
-    // Acta (asamblea) como campo único
     formData.append('acta', nuevoProyecto.documentos.asamblea);
-    // Los demás documentos como array
     if (nuevoProyecto.documentos.cotizaciones) {
-      formData.append('documentos[]', nuevoProyecto.documentos.cotizaciones);
+      formData.append('cotizaciones', nuevoProyecto.documentos.cotizaciones);
     }
     if (nuevoProyecto.documentos.elegido) {
-      formData.append('documentos[]', nuevoProyecto.documentos.elegido);
+      formData.append('elegido', nuevoProyecto.documentos.elegido);
     }
     try {
       const res = await fetch('http://localhost:8000/api/proyectos/', {
@@ -164,11 +238,12 @@ export default function Proyectos() {
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       });
+      console.log('[DEBUG] Respuesta crear proyecto status:', res.status);
+      const text = await res.text();
+      console.log('[DEBUG] Respuesta crear proyecto text:', text);
       if (res.ok) {
         setEtapa(2);
-        // Recargar proyectos desde el backend
         fetchProyectos();
-        // Limpiar formulario
         setNuevoProyecto({
           nombre: '',
           descripcion: '',
@@ -182,9 +257,11 @@ export default function Proyectos() {
         });
       } else {
         alert('Error al crear el proyecto');
+        console.log('[DEBUG] ERROR: No se pudo crear el proyecto');
       }
-    } catch {
+    } catch (err) {
       alert('Error de red al crear el proyecto');
+      console.log('[DEBUG] ERROR: Red al crear proyecto', err);
     }
   };
 

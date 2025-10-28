@@ -14,6 +14,24 @@ export default function Layout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const menuRef = React.useRef();
+  const buttonRef = React.useRef();
+
+  React.useEffect(() => {
+    if (!menuOpen) return;
+    function handleClickOutside(e) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target)
+      ) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -39,14 +57,16 @@ export default function Layout({ children }) {
                 <a href="/proyectos" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Proyectos</a>
               </li>
               <li>
-                <a href="/socios" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Socios</a>
-              </li>
-              <li>
+                <a href="/rendiciones" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Rendiciones</a>
+              </li>receurad
+                 <li>
                 <a href="/periodos" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Periodos</a>
               </li>
               <li>
-                <a href="/rendiciones" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Rendiciones</a>
+                <a href="/socios" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Socios</a>
               </li>
+           
+              
             </ul>
           </nav>
         </aside>
@@ -60,16 +80,17 @@ export default function Layout({ children }) {
             </div>
             <div className="relative ">
               <button
-                className="bg-indigo text-white px-4 py-2 rounded-lg shadow font-semibold flex items-center gap-2 hover:bg-taupe"
+                ref={buttonRef}
+                className="bg-taupe text-white px-4 py-2 rounded-lg shadow font-semibold flex items-center gap-2 hover:bg-taupe hover:text-white"
                 onClick={() => setMenuOpen((open) => !open)}
               >
                 {user?.nombre || user?.username || 'Usuario'}
                 <svg width="16" height="16" fill="currentColor" className="ml-1"><path d="M4 6l4 4 4-4"/></svg>
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white text-indigo rounded-lg shadow-lg border border-secondary z-10">
+                <div ref={menuRef} className="absolute right-0 mt-2 w-40 bg-white text-indigo rounded-lg shadow-lg border border-secondary z-10">
                   <button
-                    className="w-full text-left px-4 py-2 hover:bg-taupe rounded-lg"
+                    className="w-full text-left px-4 py-2 hover:bg-taupe hover:text-white text-indigo rounded-lg"
                     onClick={handleLogout}
                   >Cerrar sesión</button>
                 </div>

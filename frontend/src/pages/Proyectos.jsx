@@ -301,6 +301,8 @@ export default function Proyectos() {
               <thead className="bg-blush">
                 <tr>
                   <th className="px-4 py-2 text-left">Nombre</th>
+                  <th className="px-4 py-2 text-left">Fecha Inicio</th>
+                  <th className="px-4 py-2 text-left">Fecha Fin</th>
                   <th className="px-4 py-2 text-left">Presupuesto Total</th>
                   <th className="px-4 py-2 text-left">Estado</th>
                   <th className="px-4 py-2 text-left">Estado Rendición</th>
@@ -318,6 +320,8 @@ export default function Proyectos() {
                   return (
                     <tr key={p.id}>
                       <td className="px-4 py-2">{p.nombre}</td>
+                      <td className="px-4 py-2">{formatFechaCL(p.fecha_inicio)}</td>
+                      <td className="px-4 py-2">{formatFechaCL(p.fecha_fin)}</td>
                       <td className="px-4 py-2">${formatMonto(presupuesto)}</td>
                       <td className="px-4 py-2">{p.estado || 'Sin datos'}</td>
                       <td className="px-4 py-2">{p.estado_rendicion || 'Sin datos'}</td>

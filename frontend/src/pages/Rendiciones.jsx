@@ -188,12 +188,12 @@ export default function Rendiciones() {
               </tr>
             </thead>
             <tbody>
-              {rendiciones.map(r => (
-                <tr key={r.id} className="border-b">
-                  <td className="px-4 py-2">{r.id}</td>
-                  <td className="px-4 py-2">{r.estado_aprobacion || '-'}</td>
-                  <td className="px-4 py-2">{r.fecha_rendicion || '-'}</td>
-                  <td className="px-4 py-2 text-center">
+                {rendiciones.map(r => (
+                  <tr key={r.id} className="border-b">
+                    <td className="px-4 py-2">{r.id}</td>
+                    <td className="px-4 py-2">{r.estado_aprobacion || '-'}</td>
+                    <td className="px-4 py-2">{formatFechaCL(r.fecha_rendicion) || '-'}</td>
+                    <td className="px-4 py-2 text-center">
                     {(() => {
                       console.log('Rendición en fila:', r);
                       console.log('Documento en fila:', r.documento);

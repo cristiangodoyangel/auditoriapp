@@ -1,0 +1,12 @@
+[
+  {"model": "socios.socio", "pk": 1, "fields": {"nombre": "Juan", "apellido": "González", "rut": "12345678-9", "direccion": "Av. Chile 123", "telefono": "+56912345678", "activo": true}},
+  {"model": "socios.socio", "pk": 2, "fields": {"nombre": "María", "apellido": "Muñoz", "rut": "23456789-1", "direccion": "Calle 1", "telefono": "+56987654321", "activo": true}},
+  {"model": "socios.socio", "pk": 3, "fields": {"nombre": "Pedro", "apellido": "Rojas", "rut": "34567891-2", "direccion": "Pasaje 2", "telefono": "+56911223344", "activo": true}},
+  {"model": "socios.socio", "pk": 4, "fields": {"nombre": "Ana", "apellido": "Díaz", "rut": "45678912-3", "direccion": "Villa Esperanza", "telefono": "+56944332211", "activo": true}},
+  {"model": "socios.socio", "pk": 5, "fields": {"nombre": "Luis", "apellido": "Pérez", "rut": "56789123-4", "direccion": "Sector Norte", "telefono": "+56999887766", "activo": true}},
+  {"model": "socios.socio", "pk": 6, "fields": {"nombre": "Sofía", "apellido": "Soto", "rut": "67891234-5", "direccion": "Av. Central", "telefono": "+56966778899", "activo": true}},
+  {"model": "socios.socio", "pk": 7, "fields": {"nombre": "Carlos", "apellido": "Contreras", "rut": "78912345-6", "direccion": "Calle Sur", "telefono": "+56955667788", "activo": true}},
+  {"model": "socios.socio", "pk": 8, "fields": {"nombre": "Valentina", "apellido": "Silva", "rut": "89123456-7", "direccion": "Barrio Alto", "telefono": "+56933445566", "activo": true}},
+  {"model": "socios.socio", "pk": 9, "fields": {"nombre": "Miguel", "apellido": "Martínez", "rut": "91234567-8", "direccion": "Condominio Azul", "telefono": "+56922334455", "activo": true}},
+  {"model": "socios.socio", "pk": 10, "fields": {"nombre": "Camila", "apellido": "Castro", "rut": "10234567-9", "direccion": "Población Nueva", "telefono": "+56977889900", "activo": true}}
+]

@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [comunidades, setComunidades] = useState([]);
   const [socios, setSocios] = useState([]);
   const [rendiciones, setRendiciones] = useState([]);
+  const [periodos, setPeriodos] = useState([]);
   const [comunidadId, setComunidadId] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -30,18 +31,21 @@ export default function Dashboard() {
       fetch('http://localhost:8000/api/proyectos/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : []),
       fetch('http://localhost:8000/api/comunidades/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : []),
       fetch('http://localhost:8000/api/socios/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : []),
-      fetch('http://localhost:8000/api/rendiciones/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : [])
-    ]).then(([proy, coms, socs, rends]) => {
-      setProyectos(proy);
-      setComunidades(coms);
-      setSocios(socs);
-      setRendiciones(rends);
+      fetch('http://localhost:8000/api/rendiciones/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : []),
+      fetch('http://localhost:8000/api/periodos/periodos/', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.ok ? res.json() : [])
+    ]).then(([proy, coms, socs, rends, pers]) => {
+      setProyectos(Array.isArray(proy) ? proy : proy.results || []);
+      setComunidades(Array.isArray(coms) ? coms : coms.results || []);
+      setSocios(Array.isArray(socs) ? socs : socs.results || []);
+      setRendiciones(Array.isArray(rends) ? rends : rends.results || []);
+      setPeriodos(Array.isArray(pers) ? pers : pers.results || []);
       setLoading(false);
     }).catch(() => {
       setProyectos([]);
       setComunidades([]);
       setSocios([]);
       setRendiciones([]);
+      setPeriodos([]);
       setLoading(false);
     });
   }, []);
@@ -77,8 +81,8 @@ export default function Dashboard() {
         {/* Resumen comunidad seleccionada */}
         {comunidadId && (() => {
           const comunidad = comunidades.find(c => String(c.id) === String(comunidadId));
-          // Simulación: cantidad de socios por comunidad
-          const sociosCom = 8 + (parseInt(comunidadId) % 5) * 3; // Ejemplo: entre 8 y 20 socios
+          // Filtrar socios reales de la comunidad
+          const sociosCom = socios.filter(s => String(s.comunidad) === String(comunidadId)).length;
           const proyectosCom = proyectos.filter(p => String(p.comunidad) === String(comunidadId));
           const rendicionesCom = rendiciones.filter(r => String(r.proyecto?.comunidad) === String(comunidadId));
           const montoAsignado = proyectosCom.reduce((acc, p) => acc + (parseFloat(p.presupuesto_total) || 0), 0);
@@ -139,14 +143,10 @@ export default function Dashboard() {
         {loading ? (
           <div className="col-span-3 text-center text-taupe">Cargando...</div>
         ) : (() => {
-          let montoAsignado = 0;
-          let montoRendido = 0;
-          let montoPorRendir = 0;
-          if (proyectos && proyectos.length > 0) {
-            montoAsignado = proyectos.reduce((acc, p) => acc + (parseFloat(p.presupuesto_total) || 0), 0);
-            montoRendido = proyectos.reduce((acc, p) => acc + (parseFloat(p.total_rendido) || 0), 0);
-            montoPorRendir = montoAsignado - montoRendido;
-          }
+          // Monto asignado desde periodos (igual que en la page de periodos)
+          let montoAsignado = periodos.reduce((acc, p) => acc + (parseFloat(p.monto_asignado) || 0), 0);
+          let montoRendido = rendiciones.reduce((acc, r) => acc + (parseFloat(r.monto_rendido || r.total_rendido) || 0), 0);
+          let montoPorRendir = montoAsignado - montoRendido;
           return (
             <>
               <DashboardCard titulo="Monto Asignado" monto={montoAsignado} color="indigo" />
@@ -165,10 +165,10 @@ export default function Dashboard() {
           <div className="col-span-4 text-center text-taupe">Cargando...</div>
         ) : proyectos ? (
           <>
-      <DashboardCard titulo="Proyectos Totales" monto={proyectos.length} color="taupe" />
-      <DashboardCard titulo="Proyectos Aprobados" monto={proyectos.filter(p => p.estado === 'Aprobado').length} color="taupe" />
-      <DashboardCard titulo="Proyectos Pendientes" monto={proyectos.filter(p => p.estado === 'Pendiente').length} color="taupe" />
-      <DashboardCard titulo="Proyectos Rechazados" monto={proyectos.filter(p => p.estado === 'Rechazado').length} color="taupe" />
+            <DashboardCard titulo="Proyectos Totales" monto={proyectos.length} color="taupe" />
+            <DashboardCard titulo="Proyectos Aprobados" monto={proyectos.filter(p => p.estado === 'Aprobado').length} color="taupe" />
+            <DashboardCard titulo="Proyectos Pendientes" monto={proyectos.filter(p => p.estado === 'Pendiente').length} color="taupe" />
+            <DashboardCard titulo="Proyectos Rechazados" monto={proyectos.filter(p => p.estado === 'Rechazado').length} color="taupe" />
           </>
         ) : (
           <div className="col-span-4 text-center text-taupe">Sin datos aún</div>

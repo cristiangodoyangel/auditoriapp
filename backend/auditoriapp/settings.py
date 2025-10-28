@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'rendiciones',       # Gestión de rendiciones de cuentas
     'periodos',            # Gestión de periodos de proyectos
     'auditores',            # Gestión de auditores
+    'socios',               # Gestión de socios
     'drf_spectacular',
     'drf_spectacular_sidecar',
 ]

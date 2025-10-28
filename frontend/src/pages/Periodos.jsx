@@ -8,6 +8,7 @@ function formatFechaCL(fecha) {
   return `${day}-${month}-${year}`;
 }
 import React, { useEffect, useState } from 'react';
+import TablaGenerica from '../components/TablaGenerica';
 
 function esPeriodoActual(periodo) {
   const hoy = new Date();
@@ -32,9 +33,7 @@ function formatMonto(monto) {
 export default function Periodos() {
   const [periodos, setPeriodos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [rowsPerPage] = useState(5);
+  // ...existing code...
   const [asc, setAsc] = useState(false);
   const [montoAnteriorEdit, setMontoAnteriorEdit] = useState('');
   const [editandoMonto, setEditandoMonto] = useState(false);
@@ -59,19 +58,8 @@ export default function Periodos() {
 
   // Separar periodo actual
   const periodoActual = periodos.find(esPeriodoActual);
-  // Mostrar todos los periodos en la tabla
-  let periodosTabla = ordenarPorFecha(periodos, asc);
-  // Filtro de búsqueda
-  if (search) {
-    periodosTabla = periodosTabla.filter(p =>
-      p.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      p.fecha_inicio.includes(search) ||
-      p.fecha_fin.includes(search)
-    );
-  }
-  // Paginación
-  const totalPages = Math.ceil(periodosTabla.length / rowsPerPage);
-  const pagedPeriodos = periodosTabla.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+  // Ordenar periodos
+  const periodosTabla = ordenarPorFecha(periodos, asc);
 
   return (
     <div className="space-y-8">
@@ -91,13 +79,6 @@ export default function Periodos() {
             </div>
           )}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
-            <input
-              type="text"
-              className="border rounded-lg px-3 py-2 w-full md:w-1/3"
-              placeholder="Buscar por nombre o fecha..."
-              value={search}
-              onChange={e => { setSearch(e.target.value); setPage(1); }}
-            />
             <button
               className="bg-indigo text-white px-4 py-2 rounded-lg font-semibold shadow"
               onClick={() => setAsc(a => !a)}
@@ -105,53 +86,26 @@ export default function Periodos() {
               Ordenar por fecha {asc ? '↑' : '↓'}
             </button>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white rounded-lg shadow border border-gray-200">
-              <thead className="bg-taupe text-white">
-                <tr>
-                  <th className="px-4 py-2 text-left">Nombre</th>
-                  <th className="px-4 py-2 text-left">Inicio</th>
-                  <th className="px-4 py-2 text-left">Fin</th>
-                  <th className="px-4 py-2 text-left">Monto Asignado</th>
-                  <th className="px-4 py-2 text-left">Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pagedPeriodos.length === 0 && (
-                  <tr><td colSpan={6} className="text-center text-taupe py-4">Sin datos aún</td></tr>
-                )}
-                {pagedPeriodos.map((p, idx) => (
-                  <tr key={p.id} className={esPeriodoActual(p) ? 'bg-indigo/10' : ''}>
-                    <td className="px-4 py-2 text-left">{p.nombre}</td>
-                    <td className="px-4 py-2 text-left">{formatFechaCL(p.fecha_inicio)}</td>
-                    <td className="px-4 py-2 text-left">{formatFechaCL(p.fecha_fin)}</td>
-                    <td className="px-4 py-2 text-left">${formatMonto(p.monto_asignado)}</td>
-                    <td className="px-4 py-2 text-left">
-                      {esPeriodoActual(p) ? (
-                        <span className="bg-blush text-deep-purple font-bold px-2 py-1 rounded-lg text-xs">Actual</span>
-                      ) : (
-                        <span className="bg-taupe text-white px-2 py-1 rounded-lg text-xs">Finalizado</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {/* Paginación */}
-          <div className="flex justify-end items-center gap-2 mt-4">
-            <button
-              className="px-3 py-1 rounded-lg border bg-white text-indigo font-bold disabled:opacity-50"
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >Anterior</button>
-            <span className="text-taupe">Página {page} de {totalPages}</span>
-            <button
-              className="px-3 py-1 rounded-lg border bg-white text-indigo font-bold disabled:opacity-50"
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-            >Siguiente</button>
-          </div>
+          <TablaGenerica
+            columns={[
+              { key: 'nombre', label: 'Nombre' },
+              { key: 'fecha_inicio', label: 'Inicio' },
+              { key: 'fecha_fin', label: 'Fin' },
+              { key: 'monto_asignado', label: 'Monto Asignado' },
+              { key: 'estado', label: 'Estado' },
+            ]}
+            data={periodosTabla.map(p => ({
+              ...p,
+              fecha_inicio: formatFechaCL(p.fecha_inicio),
+              fecha_fin: formatFechaCL(p.fecha_fin),
+              monto_asignado: `$${formatMonto(p.monto_asignado)}`,
+              estado: esPeriodoActual(p)
+                ? <span className="bg-blush text-deep-purple font-bold px-2 py-1 rounded-lg text-xs">Actual</span>
+                : <span className="bg-taupe text-white px-2 py-1 rounded-lg text-xs">Finalizado</span>
+            }))}
+            emptyText="Sin datos aún"
+            rowsPerPage={8}
+          />
         </>
       )}
     </div>

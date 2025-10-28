@@ -1,4 +1,15 @@
+
 import React, { useState } from 'react';
+
+function formatFechaCL(fecha) {
+  if (!fecha) return '';
+  const d = new Date(fecha);
+  if (isNaN(d)) return fecha;
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+}
 
 export default function CrearPeriodo({ onPeriodoCreado }) {
   const [nombre, setNombre] = useState('');
@@ -62,10 +73,14 @@ export default function CrearPeriodo({ onPeriodoCreado }) {
           <div className="flex-1">
             <label className="block text-taupe mb-2">Fecha de Inicio</label>
             <input type="date" className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-indigo" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} />
+            {/* Mostrar fecha en formato chileno si existe */}
+            {fechaInicio && <div className="text-xs text-taupe mt-1">{formatFechaCL(fechaInicio)}</div>}
           </div>
           <div className="flex-1">
             <label className="block text-taupe mb-2">Fecha de Fin</label>
             <input type="date" className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-indigo" value={fechaFin} onChange={e => setFechaFin(e.target.value)} />
+            {/* Mostrar fecha en formato chileno si existe */}
+            {fechaFin && <div className="text-xs text-taupe mt-1">{formatFechaCL(fechaFin)}</div>}
           </div>
         </div>
         <div className="mb-4">

@@ -17,6 +17,7 @@ Pillow==10.4.0
 
 # API Documentation
 drf-spectacular==0.27.2
+drf-spectacular-sidecar==0.7.0
 
 # Data Processing & Export
 openpyxl==3.1.5

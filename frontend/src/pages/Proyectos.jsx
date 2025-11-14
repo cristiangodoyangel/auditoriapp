@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom"; // <-- 1. IMPORTAR useNavigate
 
 function formatMonto(monto) {
   if (monto === undefined || monto === null || isNaN(monto)) return "Sin datos";
@@ -29,6 +30,11 @@ export default function Proyectos() {
   });
   const [comunidadId, setComunidadId] = useState(null);
   const [periodoVigente, setPeriodoVigente] = useState(null);
+
+  // --- 2. AÑADIR ESTADO Y HOOK PARA EL MODAL ---
+  const [showNoPeriodoModal, setShowNoPeriodoModal] = useState(false);
+  const navigate = useNavigate(); // Hook para redirigir
+  // ------------------------------------------
 
   let isAuditor = false;
   try {
@@ -137,9 +143,9 @@ export default function Proyectos() {
             setPeriodoVigente(vigente);
           } else {
             setPeriodoVigente(null);
-            alert(
-              "Atención: No se encontró un Periodo activo para su comunidad. No podrá crear proyectos."
-            );
+            // --- 3. CAMBIO DE ALERT A MODAL ---
+            setShowNoPeriodoModal(true);
+            // ---------------------------------
           }
         } else {
           console.error("Error al obtener periodos:", res.status);
@@ -157,7 +163,7 @@ export default function Proyectos() {
     }
 
     cargarDatosIniciales();
-  }, [fetchProyectos]);
+  }, [fetchProyectos]); // (Quitamos 'navigate' de las dependencias, no es necesario)
 
   const handleInputChange = (e) => {
     setNuevoProyecto({ ...nuevoProyecto, [e.target.name]: e.target.value });
@@ -175,13 +181,13 @@ export default function Proyectos() {
     e.preventDefault();
     const token = localStorage.getItem("access");
     if (!comunidadId) {
-      alert("No se pudo obtener la comunidad del usuario.");
+      alert("No se pudo obtener la comunidad del usuario."); // (Dejamos este alert por si es un error grave)
       return;
     }
     if (!periodoVigente || !periodoVigente.id) {
-      alert(
-        "No hay un Periodo vigente seleccionado. Verifique que exista un periodo activo para la fecha de hoy."
-      );
+      // --- 4. CAMBIO DE ALERT A MODAL ---
+      setShowNoPeriodoModal(true);
+      // ---------------------------------
       return;
     }
     const presupuestoFormateado = Number(
@@ -242,6 +248,29 @@ export default function Proyectos() {
 
   return (
     <div className="space-y-8">
+      {/* --- 5. AÑADIR EL JSX DEL MODAL --- */}
+      {showNoPeriodoModal && (
+        // --- ¡AQUÍ ESTÁ EL CAMBIO! ---
+        // Cambiamos 'bg-opacity-50' por 'bg-opacity-30' para más transparencia
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          {/* --------------------------- */}
+          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md text-center">
+            <h2 className="text-2xl font-bold mb-4 text-indigo">Atención</h2>
+            <p className="text-taupe mb-6">
+              No se encontró un Periodo activo para su comunidad.
+              <br />
+              Debe crear un periodo antes de poder gestionar proyectos.
+            </p>
+            <button
+              className="bg-indigo text-white px-6 py-2 rounded-lg font-semibold shadow hover:bg-taupe"
+              onClick={() => navigate("/crear-periodo")} // Redirige a la página de Periodos
+            >
+              Ir a Periodos
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-end mb-4">
         <button
           className="bg-indigo text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-taupe"
@@ -428,11 +457,8 @@ export default function Proyectos() {
               </thead>
               <tbody>
                 {proyectos.map((p, idx) => {
-                  // --- AQUÍ ESTÁ LA CORRECCIÓN ---
-                  // Simplificamos la lógica para usar solo los campos correctos de la BD
                   const presupuesto = p.presupuesto_total || 0;
                   const montoRendido = p.total_rendido || 0;
-                  // -------------------------------
                   const faltaPorRendir =
                     Number(presupuesto) - Number(montoRendido);
                   return (

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom'; // <-- 1. FALTABA IMPORTAR useNavigate
 
 // --- (Funciones de ayuda para formato) ---
 function formatFechaCL(fecha) {
@@ -27,6 +28,13 @@ export default function Rendiciones() {
   });
   const [proyectos, setProyectos] = useState([]);
 
+  // --- 2. FALTABAN ESTOS ESTADOS Y EL HOOK ---
+  const [comunidadId, setComunidadId] = useState(null);
+  const [periodoVigente, setPeriodoVigente] = useState(null);
+  const [showNoPeriodoModal, setShowNoPeriodoModal] = useState(false);
+  const navigate = useNavigate();
+  // -----------------------------------------
+
   const fetchRendiciones = useCallback(async () => {
     const token = localStorage.getItem('access');
     setLoading(true);
@@ -41,23 +49,136 @@ export default function Rendiciones() {
     }
     setLoading(false);
   }, [setLoading, setRendiciones]);
-
+  
+  // --- 3. FALTABA TODA LA LÓGICA EN useEffect ---
   useEffect(() => {
     const token = localStorage.getItem('access');
-    fetchRendiciones(); 
 
-    fetch('http://localhost:8000/api/proyectos/', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setProyectos(Array.isArray(data) ? data : data.results || []))
-      .catch(() => setProyectos([]));
+    // (Necesitamos esta función de Proyectos.jsx)
+    async function fetchComunidad() {
+      let comunidadFromToken = null;
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user && user.comunidad && user.comunidad.id) {
+          comunidadFromToken = user.comunidad.id;
+        }
+      } catch (err) { /* Silencio */ }
+
+      try {
+        const res = await fetch("http://localhost:8000/api/auth/profile/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          let id = null;
+          if (data.comunidad_id) id = data.comunidad_id;
+          else if (data.comunidad) id = data.comunidad;
+          else if (comunidadFromToken) id = comunidadFromToken;
+          if (id) {
+            setComunidadId(id);
+            return id;
+          }
+        }
+        // Fallback
+        if (comunidadFromToken) {
+            setComunidadId(comunidadFromToken);
+            return comunidadFromToken;
+        }
+        return null;
+      } catch (err) {
+        if (comunidadFromToken) {
+            setComunidadId(comunidadFromToken);
+            return comunidadFromToken;
+        }
+        return null;
+      }
+    }
+    
+    // (Necesitamos esta función de Proyectos.jsx)
+    async function fetchPeriodoVigente(idComunidad) {
+      if (!idComunidad) {
+        setPeriodoVigente(null);
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          "http://localhost:8000/api/periodos/periodos/",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (res.ok) {
+          const data = await res.json();
+          const listaPeriodos = Array.isArray(data) ? data : data.results || [];
+          const hoy = new Date().toISOString().slice(0, 10);
+
+          const vigente = listaPeriodos.find((p) => {
+            const esDeMiComunidad = String(p.comunidad) === String(idComunidad);
+            const fechaValida = p.fecha_inicio <= hoy && p.fecha_fin >= hoy;
+            return esDeMiComunidad && fechaValida;
+          });
+
+          if (vigente) {
+            setPeriodoVigente(vigente);
+          } else {
+            setPeriodoVigente(null);
+            setShowNoPeriodoModal(true); // ¡MOSTRAR MODAL!
+          }
+        } else {
+          console.error("Error al obtener periodos:", res.status);
+        }
+      } catch (err) {
+        console.error("Error de red en fetchPeriodoVigente:", err);
+        setPeriodoVigente(null);
+      }
+    }
+    
+    // (Función que ya tenías para el <select>)
+    async function fetchProyectos() {
+        fetch('http://localhost:8000/api/proyectos/', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(res => res.ok ? res.json() : [])
+        .then(data => setProyectos(Array.isArray(data) ? data : data.results || []))
+        .catch(() => setProyectos([]));
+    }
+    
+    // El Orquestador
+    async function cargarDatosIniciales() {
+      const idComunidad = await fetchComunidad();
+      await fetchPeriodoVigente(idComunidad); // <-- Chequeo de periodo
+      await fetchRendiciones(); // Carga la tabla de rendiciones
+      await fetchProyectos(); // Carga los proyectos para el dropdown
+    }
+
+    cargarDatosIniciales();
   }, [fetchRendiciones]);
+  // ------------------------------------------
+
+  // --- 4. FALTABA ESTE MANEJADOR ---
+  // Este manejador comprueba el periodo ANTES de mostrar el formulario
+  const handleShowForm = () => {
+    if (!periodoVigente) {
+      setShowNoPeriodoModal(true); // Si no hay periodo, muestra el modal
+    } else {
+      setShowForm(true); // Si hay periodo, muestra el formulario
+    }
+  };
+  // ---------------------------------
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('access');
     
+    // (Doble chequeo por si acaso)
+    if (!periodoVigente) {
+        setShowNoPeriodoModal(true);
+        return;
+    }
+
     // 1. Subir el documento PDF
     const docForm = new FormData();
     docForm.append('archivo', form.documento);
@@ -84,17 +205,13 @@ export default function Rendiciones() {
     const documentoId = docData.id;
 
     // 2. Crear la rendición
-    // --- ¡AQUÍ ESTÁ LA CORRECCIÓN PARA EL ERROR 400! ---
     const rendicionPayload = {
       proyecto: form.proyecto,
       monto_rendido: form.monto_rendido,
       descripcion: form.descripcion,
       fecha_rendicion: form.fecha_rendicion,
-      
-      // El backend espera 'documentos_ids' (plural) y como una LISTA
       documentos_ids: [documentoId]
     };
-    // ---------------------------------------------------
 
     try {
       const res = await fetch('http://localhost:8000/api/rendiciones/', {
@@ -128,11 +245,39 @@ export default function Rendiciones() {
 
   return (
     <div className="space-y-8">
+      
+      {/* (Tu JSX del modal está perfecto, solo actualicé el 'onClick') */}
+      {showNoPeriodoModal && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md text-center">
+            <h2 className="text-2xl font-bold mb-4 text-indigo">Atención</h2>
+            <p className="text-taupe mb-6">
+              No se encontró un Periodo activo para su comunidad.
+              <br />
+              Debe crear un periodo antes de poder gestionar proyectos.
+            </p>
+            <button
+              className="bg-indigo text-white px-6 py-2 rounded-lg font-semibold shadow hover:bg-taupe"
+              onClick={() => navigate("/crear-periodo")} // Redirige a la página de crear-periodo
+            >
+              Crear Periodo
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-end mb-4">
-        <button className="bg-indigo text-white px-4 py-2 rounded-lg shadow font-semibold hover:bg-taupe" onClick={() => setShowForm(true)}>
+        {/* --- 5. FALTABA ACTUALIZAR EL onClick --- */}
+        <button 
+          className="bg-indigo text-white px-4 py-2 rounded-lg shadow font-semibold hover:bg-taupe" 
+          onClick={handleShowForm} // Cambiado de 'setShowForm(true)'
+        >
           Crear Rendición
         </button>
+        {/* ------------------------------------- */}
       </div>
+
+      {/* (El resto de tu código de formulario y tabla está bien) */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg relative">
@@ -184,7 +329,6 @@ export default function Rendiciones() {
           <div className="text-center text-taupe">No hay rendiciones registradas.</div>
         ) : (
           <table className="min-w-full table-auto">
-            {/* --- TABLA CORREGIDA --- */}
             <thead>
               <tr className="bg-background">
                 <th className="px-4 py-2 text-left text-taupe">Proyecto</th>
@@ -223,7 +367,6 @@ export default function Rendiciones() {
                   </tr>
               ))}
             </tbody>
-            {/* ----------------------- */}
           </table>
         )}
       </div>

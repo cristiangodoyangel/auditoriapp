@@ -119,7 +119,7 @@ export default function Dashboard() {
       {/* ------------------------------------ */}
 
 
-     {/* --- SECCIÓN PROYECTOS RECIENTES CORREGIDA --- */}
+     {/* --- SECCIÓN PROYECTOS RECIENTES (LÓGICA CORREGIDA) --- */}
       <div className="bg-white rounded-lg shadow p-6 border border-gray-200 mt-6">
         <div className="font-bold text-deep-purple mb-2">Proyectos Recientes</div>
         <div className="text-taupe mb-4">Últimos proyectos en gestión</div>
@@ -127,14 +127,16 @@ export default function Dashboard() {
           <div className="text-center text-taupe">Cargando...</div>
         ) : proyectos && proyectos.length > 0 ? (
           <div className="space-y-4">
-            {/* Mostramos solo los últimos 5, ordenados por ID (más nuevo primero) */}
             {proyectos.sort((a, b) => b.id - a.id).slice(0, 5).map((p) => {
               
-              // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
-              // Usamos los nombres de campo correctos de tu models.py
               const presupuesto = p.presupuesto_total || 0;
-              const rendido = p.total_rendido || 0;
-              // ---------------------------------
+              
+              // --- ¡AQUÍ ESTÁ LA NUEVA LÓGICA! ---
+              // 1. Filtramos la lista de todas las rendiciones
+              const rendiciones_del_proyecto = rendiciones.filter(r => r.proyecto === p.id);
+              // 2. Sumamos el total solo para este proyecto
+              const rendido = rendiciones_del_proyecto.reduce((acc, r) => acc + (parseFloat(r.monto_rendido) || 0), 0);
+              // ------------------------------------
               
               const porcentaje = presupuesto > 0 ? Math.round((rendido / presupuesto) * 100) : 0;
 
@@ -146,18 +148,15 @@ export default function Dashboard() {
                       p.estado === 'Validado' ? 'bg-green-500' : 
                       p.estado === 'Rechazado' ? 'bg-red-500' : 'bg-taupe'
                     }`}>
-                      {/* Mostramos 'Pendiente' en lugar de 'Borrador' */}
                       {p.estado === 'Borrador' ? 'Pendiente Val.' : p.estado}
                     </span>
                   </div>
                   
-                  {/* --- CORRECCIÓN DE VISUALIZACIÓN --- */}
                   <div className="text-sm text-taupe">Presupuesto: ${formatMonto(presupuesto)}</div>
+                  {/* Esta línea ahora usará la suma manual 'rendido' */}
                   <div className="text-sm text-taupe">Rendido: ${formatMonto(rendido)}</div>
-                  {/* --------------------------------- */}
 
                   <div className="w-full h-2 bg-gray-200 rounded-full">
-                    {/* La barra de progreso ahora usará el 'porcentaje' correcto */}
                     <div className="h-2 bg-indigo rounded-full" style={{ width: `${porcentaje}%` }}></div>
                   </div>
                   <div className="text-right text-xs text-indigo font-bold">{porcentaje}% Rendido</div>

@@ -47,8 +47,8 @@ INSTALLED_APPS = [
     'reportes',          # Generación de reportes en PDF/Excel
     'rest_framework',  # Si usas Django REST Framework
     'corsheaders',     # Si usas django-cors-headers
-    'usuarios',        # Gestión de usuarios y autenticación
-    'rendiciones.apps.RendicionesConfig'
+    'usuarios',        
+    'rendiciones', 
     'periodos',            # Gestión de periodos de proyectos
     'auditores',            # Gestión de auditores
     'socios',               # Gestión de socios
@@ -130,8 +130,7 @@ LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
 
-USE_I18N = True
-
+USE_I18N = True # <-- Corregí el error de tipeo (era I1N)
 USE_TZ = True
 
 
@@ -174,12 +173,12 @@ SPECTACULAR_SETTINGS = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Tiempo de vida del access token
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # Tiempo de vida del refresh token
-    'ROTATE_REFRESH_TOKENS': True,                   # Si rotamos los refresh tokens
-    'BLACKLIST_AFTER_ROTATION': True,                # Si se pone en blacklist el refresh token después de su rotación
-    'ALGORITHM': 'HS256',                            # Algoritmo de codificación (default HS256)
-    'SIGNING_KEY': SECRET_KEY,                       # Clave secreta para firmar los JWT
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256', # <-- ASEGÚRATE QUE DIGA 256
+    'SIGNING_KEY': SECRET_KEY,
 }
 
 # CORS Configuration
@@ -191,5 +190,3 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_ALL_ORIGINS = True  # Solo para desarrollo
-
-

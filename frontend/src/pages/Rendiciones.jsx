@@ -1,4 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+
+// --- (Funciones de ayuda para formato) ---
+function formatFechaCL(fecha) {
+  if (!fecha || typeof fecha !== 'string' || !fecha.includes('-')) return '';
+  const parts = fecha.split('T')[0].split('-');
+  if (parts.length !== 3) return fecha;
+  return `${parts[2]}-${parts[1]}-${parts[0]}`;
+}
+
+function formatMonto(monto) {
+  if (monto === undefined || monto === null || isNaN(monto)) return 'Sin datos';
+  return Number(monto).toLocaleString('es-CL', { maximumFractionDigits: 0 });
+}
+// ------------------------------------------
 
 export default function Rendiciones() {
   const [rendiciones, setRendiciones] = useState([]);
@@ -13,112 +27,103 @@ export default function Rendiciones() {
   });
   const [proyectos, setProyectos] = useState([]);
 
-  useEffect(() => {
+  const fetchRendiciones = useCallback(async () => {
     const token = localStorage.getItem('access');
     setLoading(true);
-    fetch('http://localhost:8000/api/rendiciones/', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => {
-        setRendiciones(Array.isArray(data) ? data : data.results || []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setRendiciones([]);
-        setLoading(false);
+    try {
+      const res = await fetch('http://localhost:8000/api/rendiciones/', {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-    // Obtener proyectos para el select
+      const data = res.ok ? await res.json() : [];
+      setRendiciones(Array.isArray(data) ? data : data.results || []);
+    } catch {
+      setRendiciones([]);
+    }
+    setLoading(false);
+  }, [setLoading, setRendiciones]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('access');
+    fetchRendiciones(); 
+
     fetch('http://localhost:8000/api/proyectos/', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.ok ? res.json() : [])
-      .then(data => setProyectos(data))
+      .then(data => setProyectos(Array.isArray(data) ? data : data.results || []))
       .catch(() => setProyectos([]));
-  }, []);
+  }, [fetchRendiciones]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('access');
+    
     // 1. Subir el documento PDF
     const docForm = new FormData();
     docForm.append('archivo', form.documento);
     docForm.append('nombre', form.documento.name);
-    docForm.append('tipo', 'pdf');
+    docForm.append('tipo', 'rendicion');
     docForm.append('descripcion', form.descripcion);
 
-    console.log('--- DOCUMENTO ---');
-    console.log('URL:', 'http://localhost:8000/api/documentos/');
-    console.log('Método:', 'POST');
-    console.log('Headers:', { 'Authorization': `Bearer ${token}` });
-    console.log('Body:', docForm);
-    const docRes = await fetch('http://localhost:8000/api/documentos/', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` },
-      body: docForm
-    });
-    console.log('Respuesta documento:', docRes);
-    let docData = {};
-    let docText = '';
+    let docData;
     try {
-      docText = await docRes.text();
-      docData = JSON.parse(docText);
-    } catch (e) {
-      console.log('Error parseando respuesta documento:', e);
-      console.log('Texto recibido:', docText);
+      const docRes = await fetch('http://localhost:8000/api/documentos/', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: docForm
+      });
+      docData = await docRes.json();
+      if (!docRes.ok) {
+        throw new Error('Error al subir el documento: ' + JSON.stringify(docData));
+      }
+    } catch (err) {
+      alert(err.message);
+      return;
     }
-    console.log('Datos documento:', docData);
+    
     const documentoId = docData.id;
 
     // 2. Crear la rendición
+    // --- ¡AQUÍ ESTÁ LA CORRECCIÓN PARA EL ERROR 400! ---
     const rendicionPayload = {
       proyecto: form.proyecto,
-      documento: documentoId,
       monto_rendido: form.monto_rendido,
       descripcion: form.descripcion,
-      fecha_rendicion: form.fecha_rendicion
+      fecha_rendicion: form.fecha_rendicion,
+      
+      // El backend espera 'documentos_ids' (plural) y como una LISTA
+      documentos_ids: [documentoId]
     };
+    // ---------------------------------------------------
 
-    console.log('--- RENDICIÓN ---');
-    console.log('URL:', 'http://localhost:8000/api/rendiciones/');
-    console.log('Método:', 'POST');
-    console.log('Headers:', {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
-    console.log('Body:', rendicionPayload);
-    const res = await fetch('http://localhost:8000/api/rendiciones/', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(rendicionPayload)
-    });
-    console.log('Respuesta rendición:', res);
-    let error = {};
-    let errorText = '';
-    if (!res.ok) {
-      try {
-        errorText = await res.text();
-        error = JSON.parse(errorText);
-      } catch (e) {
-        console.log('Error parseando respuesta rendición:', e);
-        console.log('Texto recibido:', errorText);
+    try {
+      const res = await fetch('http://localhost:8000/api/rendiciones/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(rendicionPayload)
+      });
+      
+      const resText = await res.text();
+      if (!res.ok) {
+        try {
+            const errJson = JSON.parse(resText);
+            alert('Error al guardar la rendición: ' + JSON.stringify(errJson));
+        } catch {
+            alert('Error al guardar la rendición: ' + resText);
+        }
+        return; 
       }
-      console.log('Error al guardar la rendición:', error);
-      alert('Error al guardar la rendición: ' + JSON.stringify(error));
-      return;
-    }
 
-    // Recargar la lista de rendiciones
-    fetch('http://localhost:8000/api/rendiciones/', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setRendiciones(Array.isArray(data) ? data : data.results || []));
-    setShowForm(false);
-    setForm({ proyecto: '', documento: null, monto_rendido: '', descripcion: '', fecha_rendicion: '' });
+      fetchRendiciones(); 
+      setShowForm(false);
+      setForm({ proyecto: '', documento: null, monto_rendido: '', descripcion: '', fecha_rendicion: '' });
+
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   return (
@@ -142,7 +147,7 @@ export default function Rendiciones() {
                 </select>
               </div>
               <div className="mb-4">
-                <label className="block text-taupe mb-1">Documento PDF</label>
+                <label className="block text-taupe mb-1">Documento PDF (Factura/Boleta)</label>
                 <input
                   className="w-full border rounded px-3 py-2"
                   type="file"
@@ -179,42 +184,46 @@ export default function Rendiciones() {
           <div className="text-center text-taupe">No hay rendiciones registradas.</div>
         ) : (
           <table className="min-w-full table-auto">
+            {/* --- TABLA CORREGIDA --- */}
             <thead>
               <tr className="bg-background">
-                <th className="px-4 py-2 text-left text-taupe">ID</th>
-                <th className="px-4 py-2 text-left text-taupe">Estado</th>
+                <th className="px-4 py-2 text-left text-taupe">Proyecto</th>
+                <th className="px-4 py-2 text-left text-taupe">Descripción</th>
+                <th className="px-4 py-2 text-left text-taupe">Monto Rendido</th>
                 <th className="px-4 py-2 text-left text-taupe">Fecha</th>
-                <th className="px-4 py-2 text-left text-taupe">PDF</th>
+                <th className="px-4 py-2 text-left text-taupe">Documentos</th>
               </tr>
             </thead>
             <tbody>
                 {rendiciones.map(r => (
                   <tr key={r.id} className="border-b">
-                    <td className="px-4 py-2">{r.id}</td>
-                    <td className="px-4 py-2">{r.estado_aprobacion || '-'}</td>
-                    <td className="px-4 py-2">{formatFechaCL(r.fecha_rendicion) || '-'}</td>
+                    <td className="px-4 py-2">{r.proyecto_nombre || '...'}</td>
+                    <td className="px-4 py-2">{r.descripcion}</td>
+                    <td className="px-4 py-2">${formatMonto(r.monto_rendido)}</td>
+                    <td className="px-4 py-2">{formatFechaCL(r.fecha_rendicion)}</td>
                     <td className="px-4 py-2 text-center">
-                    {(() => {
-                      console.log('Rendición en fila:', r);
-                      console.log('Documento en fila:', r.documento);
-                      if (r.documento && typeof r.documento === 'object') {
-                        if (r.documento.archivo) {
-                          console.log('URL archivo:', r.documento.archivo);
-                        }
-                        if (r.documento.archivo && r.documento.archivo !== "") {
-                          return (
-                            <a href={r.documento.archivo} download target="_blank" rel="noopener noreferrer" title="Descargar PDF">
-                              <button className="bg-indigo text-white px-3 py-1 rounded shadow hover:bg-taupe transition">Descargar PDF</button>
+                    {r.documentos_adjuntos && r.documentos_adjuntos.length > 0 ? (
+                        r.documentos_adjuntos.map(doc => (
+                            <a 
+                              key={doc.id}
+                              href={doc.archivo} 
+                              download 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              title={doc.nombre}
+                              className="inline-block bg-indigo text-white px-3 py-1 rounded shadow hover:bg-taupe transition mb-1 text-xs"
+                            >
+                              Ver PDF
                             </a>
-                          );
-                        }
-                      }
-                      return '-';
-                    })()}
-                  </td>
-                </tr>
+                        ))
+                    ) : (
+                        <span>-</span>
+                    )}
+                    </td>
+                  </tr>
               ))}
             </tbody>
+            {/* ----------------------- */}
           </table>
         )}
       </div>

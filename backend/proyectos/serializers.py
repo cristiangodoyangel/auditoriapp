@@ -1,25 +1,37 @@
+# proyectos/serializers.py
 from rest_framework import serializers
-from .models import Proyecto, Asamblea
+from .models import Proyecto
 
 class ProyectoSerializer(serializers.ModelSerializer):
+    # --- AÑADE ESTAS LÍNEAS ---
     acta_url = serializers.SerializerMethodField()
+    cotizaciones_url = serializers.SerializerMethodField()
+    elegido_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Proyecto
-        fields = '__all__'
-        extra_fields = ['acta_url']
+        fields = '__all__' # '__all__' incluirá 'acta', 'cotizaciones', 'elegido'
+        extra_kwargs = {
+            'acta': {'required': False},
+            'cotizaciones': {'required': False},
+            'elegido': {'required': False},
+        }
 
-    def get_acta_url(self, obj):
-        # Buscar asamblea asociada a este proyecto
-        asamblea = Asamblea.objects.filter(proyectos_propuestos=obj).first()
-        if asamblea and asamblea.acta:
-            request = self.context.get('request')
+    # --- AÑADE ESTAS FUNCIONES ---
+    def _get_file_url(self, obj, field_name):
+        request = self.context.get('request')
+        field = getattr(obj, field_name)
+        if field and hasattr(field, 'url'):
             if request is not None:
-                return request.build_absolute_uri(asamblea.acta.url)
-            return asamblea.acta.url
+                return request.build_absolute_uri(field.url)
+            return field.url
         return None
 
-class AsambleaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Asamblea
-        fields = '__all__'
+    def get_acta_url(self, obj):
+        return self._get_file_url(obj, 'acta')
+
+    def get_cotizaciones_url(self, obj):
+        return self._get_file_url(obj, 'cotizaciones')
+
+    def get_elegido_url(self, obj):
+        return self._get_file_url(obj, 'elegido')

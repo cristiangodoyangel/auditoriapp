@@ -4,8 +4,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from .models import Proyecto, Asamblea
-from .serializers import ProyectoSerializer, AsambleaSerializer
+# --- CORRECCIÓN ---
+# Se eliminó 'Asamblea' de esta línea
+from .models import Proyecto
+# Se eliminó 'AsambleaSerializer' de esta línea
+from .serializers import ProyectoSerializer
+# --------------------
 
 class ProyectoViewSet(viewsets.ModelViewSet):
     serializer_class = ProyectoSerializer
@@ -19,9 +23,14 @@ class ProyectoViewSet(viewsets.ModelViewSet):
         return Proyecto.objects.none()
     
     def perform_create(self, serializer):
+        # Asignar la comunidad automáticamente si el usuario es Admin Comunidad
+        # El frontend envía 'comunidad' también, pero esto lo refuerza en el backend.
         if self.request.user.rol == 'Admin Comunidad':
             serializer.save(comunidad=self.request.user.comunidad)
         else:
+            # En un caso real, aquí deberíamos validar
+            # que el usuario tenga permiso o que el 'comunidad' ID enviado sea válido.
+            # Por ahora, confiamos en el serializer.save()
             serializer.save()
     
     @action(detail=True, methods=['post'])
@@ -34,39 +43,47 @@ class ProyectoViewSet(viewsets.ModelViewSet):
         return Response({'error': 'El proyecto no está en estado borrador'}, 
                        status=status.HTTP_400_BAD_REQUEST)
     
+
+    # Acción de validación
     @action(detail=True, methods=['post'])
-    def aprobar(self, request, pk=None):
-        if request.user.rol not in ['Admin Consejo', 'Auditor']:
-            return Response({'error': 'No tienes permisos para aprobar proyectos'}, 
-                           status=status.HTTP_403_FORBIDDEN)
+    def validar(self, request, pk=None): # Renombrado de 'aprobar' a 'validar'
         
+        # --- CORRECCIÓN DE PERMISOS ---
+        # Solo el rol 'Auditor' puede ejecutar esta acción
+        if request.user.rol != 'Auditor':
+            return Response({'error': 'No tienes permisos para validar proyectos'}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        # ---------------------------------
+
         proyecto = self.get_object()
-        if proyecto.estado == 'Enviado a Revision':
-            proyecto.estado = 'Aprobado'
-            proyecto.aprobado_por = request.user
-            proyecto.fecha_aprobacion = timezone.now()
-            proyecto.comentarios_aprobacion = request.data.get('comentarios', '')
+        
+        # El estado 'Borrador' (o 'Pendiente' si ya lo cambiaste en el modelo) es el que se valida
+        if proyecto.estado == 'Pendiente' or proyecto.estado == 'Borrador': 
+            proyecto.estado = 'Validado' # Cambia 'Aprobado' por 'Validado'
             proyecto.save()
-            return Response({'message': 'Proyecto aprobado'})
-        return Response({'error': 'El proyecto no está en revisión'}, 
+            return Response({'message': 'Proyecto validado'})
+        
+        return Response({'error': 'El proyecto no está pendiente de validación'}, 
                        status=status.HTTP_400_BAD_REQUEST)
     
+    # Esta acción 'rechazar' también debe ser solo para 'Auditor'
     @action(detail=True, methods=['post'])
     def rechazar(self, request, pk=None):
-        if request.user.rol not in ['Admin Consejo', 'Auditor']:
+        
+        # --- CORRECCIÓN DE PERMISOS ---
+        if request.user.rol != 'Auditor':
             return Response({'error': 'No tienes permisos para rechazar proyectos'}, 
                            status=status.HTTP_403_FORBIDDEN)
+        # ---------------------------------
         
         proyecto = self.get_object()
-        if proyecto.estado == 'Enviado a Revision':
+        if proyecto.estado == 'Pendiente' or proyecto.estado == 'Borrador' or proyecto.estado == 'Enviado a Revision':
             proyecto.estado = 'Rechazado'
-            proyecto.comentarios_aprobacion = request.data.get('comentarios', '')
+            # (Si quieres añadir comentarios de rechazo, asegúrate de añadir
+            # un campo 'comentarios_rechazo' al modelo Proyecto)
+            # proyecto.comentarios_rechazo = request.data.get('comentarios', '')
             proyecto.save()
             return Response({'message': 'Proyecto rechazado'})
-        return Response({'error': 'El proyecto no está en revisión'}, 
+        
+        return Response({'error': 'El proyecto no está pendiente de validación'}, 
                        status=status.HTTP_400_BAD_REQUEST)
-
-class AsambleaViewSet(viewsets.ModelViewSet):
-    serializer_class = AsambleaSerializer
-    permission_classes = [IsAuthenticated]
-    queryset = Asamblea.objects.all()

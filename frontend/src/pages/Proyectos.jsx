@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react"; // <-- 1. IMPORTAR useCallback
+import React, { useEffect, useState, useCallback } from "react";
 
 function formatMonto(monto) {
   if (monto === undefined || monto === null || isNaN(monto)) return "Sin datos";
@@ -6,16 +6,9 @@ function formatMonto(monto) {
 }
 
 function formatFechaCL(fecha) {
-  // Comprobación rápida para evitar errores con fechas nulas o mal formadas
-  if (!fecha || typeof fecha !== 'string' || !fecha.includes('-')) return '';
-  
-  // Asumimos que la fecha viene del backend como 'YYYY-MM-DD'
-  // T'[0]' maneja si viniera como 'YYYY-MM-DDTHH:MM:SS'
-  const parts = fecha.split('T')[0].split('-');
-  
-  if (parts.length !== 3) return fecha; // Devolver original si no es el formato esperado
-  
-  // Formato: DD-MM-YYYY
+  if (!fecha || typeof fecha !== "string" || !fecha.includes("-")) return "";
+  const parts = fecha.split("T")[0].split("-");
+  if (parts.length !== 3) return fecha;
   return `${parts[2]}-${parts[1]}-${parts[0]}`;
 }
 
@@ -36,53 +29,39 @@ export default function Proyectos() {
   });
   const [comunidadId, setComunidadId] = useState(null);
   const [periodoVigente, setPeriodoVigente] = useState(null);
-  // Detectar si el usuario es auditor
+
   let isAuditor = false;
   try {
     const user = JSON.parse(localStorage.getItem("user"));
-    console.log("[DEBUG] Usuario en localStorage:", user);
     isAuditor = user && (user.rol === "auditor" || user.role === "auditor");
-    console.log("[DEBUG] isAuditor:", isAuditor);
   } catch (err) {
-    console.log("[DEBUG] Error al leer usuario de localStorage:", err);
+    // Silencio intencional
   }
 
-  // ####################################################################
-  // ### INICIO DEL BLOQUE CORREGIDO (useCallback) ###
-  // ####################################################################
-
-  // --- 1. FUNCIÓN DE PROYECTOS (Definida afuera con useCallback) ---
   const fetchProyectos = useCallback(async () => {
-    const token = localStorage.getItem("access"); // Obtener token aquí
-    setLoading(true); // Se activa el loading de la tabla
+    const token = localStorage.getItem("access");
+    setLoading(true);
     try {
       const res = await fetch("http://localhost:8000/api/proyectos/", {
         headers: { Authorization: `Bearer ${token}` },
       });
       let data = [];
-      const status = res.status;
       const text = await res.text();
-      console.log("[DEBUG] Status respuesta proyectos:", status);
       try {
         data = JSON.parse(text);
       } catch (err) {
-        console.log("[DEBUG] Error al parsear proyectos:", err);
         data = [];
       }
       setProyectos(Array.isArray(data) ? data : data.results || []);
     } catch (err) {
-      console.error("[DEBUG] Error al obtener proyectos:", err);
       setProyectos([]);
     }
-    setLoading(false); // Se desactiva el loading de la tabla
-  }, [setProyectos, setLoading]); // Dependencias de la función
+    setLoading(false);
+  }, [setProyectos, setLoading]);
 
-  // --- 2. useEffect (El Orquestador) ---
   useEffect(() => {
     const token = localStorage.getItem("access");
-    console.log("[DEBUG] Token:", token);
 
-    // --- FUNCIÓN DE COMUNIDAD (Ahora devuelve el ID) ---
     async function fetchComunidad() {
       let comunidadFromToken = null;
       try {
@@ -90,9 +69,7 @@ export default function Proyectos() {
         if (user && user.comunidad && user.comunidad.id) {
           comunidadFromToken = user.comunidad.id;
         }
-      } catch (err) {
-        console.log("[DEBUG] Error al leer comunidadFromToken:", err);
-      }
+      } catch (err) { /* Silencio */ }
 
       try {
         const res = await fetch("http://localhost:8000/api/auth/profile/", {
@@ -107,58 +84,36 @@ export default function Proyectos() {
           else if (comunidadFromToken) id = comunidadFromToken;
 
           if (id) {
-            console.log("[DEBUG] fetchComunidad SUCCESS. ID encontrado:", id);
-            setComunidadId(id); // Seteamos estado
-            return id; // Devolvemos el ID para el siguiente paso
+            setComunidadId(id);
+            return id;
           } else {
-            console.error(
-              "[DEBUG] fetchComunidad ERROR: No se encontró ID de comunidad en profile:",
-              data
-            );
             setComunidadId(null);
             return null;
           }
         } else {
           if (comunidadFromToken) {
-            console.warn(
-              "[DEBUG] fetchComunidad FALLÓ. Usando ID del token:",
-              comunidadFromToken
-            );
             setComunidadId(comunidadFromToken);
             return comunidadFromToken;
           }
-          console.error("[DEBUG] fetchComunidad FALLÓ y no hay ID en token.");
           setComunidadId(null);
           return null;
         }
       } catch (err) {
         if (comunidadFromToken) {
-          console.warn(
-            "[DEBUG] fetchComunidad CATCH. Usando ID del token:",
-            comunidadFromToken
-          );
           setComunidadId(comunidadFromToken);
           return comunidadFromToken;
         }
-        console.error("[DEBUG] fetchComunidad CATCH: Error de red", err);
         setComunidadId(null);
         return null;
       }
     }
 
-    // --- FUNCIÓN DE PERIODO (Ahora recibe el ID como argumento) ---
     async function fetchPeriodoVigente(idComunidad) {
       if (!idComunidad) {
-        console.warn(
-          "[DEBUG] fetchPeriodoVigente OMITIDO: No se proveyó idComunidad."
-        );
         setPeriodoVigente(null);
         return;
       }
 
-      console.log(
-        `[DEBUG] fetchPeriodoVigente INICIADO para comunidad ID: ${idComunidad}`
-      );
       try {
         const res = await fetch(
           "http://localhost:8000/api/periodos/periodos/",
@@ -170,8 +125,6 @@ export default function Proyectos() {
         if (res.ok) {
           const data = await res.json();
           const listaPeriodos = Array.isArray(data) ? data : data.results || [];
-          console.log("[DEBUG] Lista periodos recibida:", listaPeriodos);
-
           const hoy = new Date().toISOString().slice(0, 10);
 
           const vigente = listaPeriodos.find((p) => {
@@ -181,40 +134,31 @@ export default function Proyectos() {
           });
 
           if (vigente) {
-            console.log("[DEBUG] Periodo vigente ENCONTRADO:", vigente);
             setPeriodoVigente(vigente);
           } else {
-            console.warn(
-              `[DEBUG] NO se encontró periodo vigente para hoy (${hoy}) en la comunidad ${idComunidad}`
-            );
             setPeriodoVigente(null);
             alert(
               "Atención: No se encontró un Periodo activo para su comunidad. No podrá crear proyectos."
             );
           }
         } else {
-          console.error("[DEBUG] Error al obtener periodos:", res.status);
+          console.error("Error al obtener periodos:", res.status);
         }
       } catch (err) {
-        console.error("[DEBUG] Error de red en fetchPeriodoVigente:", err);
+        console.error("Error de red en fetchPeriodoVigente:", err);
         setPeriodoVigente(null);
       }
     }
 
-    // --- EL ORQUESTADOR ---
     async function cargarDatosIniciales() {
       const idComunidad = await fetchComunidad();
       await fetchPeriodoVigente(idComunidad);
-      await fetchProyectos(); // <-- Llama a la función definida afuera
+      await fetchProyectos();
     }
 
     cargarDatosIniciales();
-  }, [fetchProyectos]); // <-- 3. AÑADIR fetchProyectos como dependencia del useEffect
-  // ####################################################################
-  // ### FIN DEL BLOQUE CORREGIDO ###
-  // ####################################################################
+  }, [fetchProyectos]);
 
-  // Etapa 1: Crear proyecto y cargar documentos
   const handleInputChange = (e) => {
     setNuevoProyecto({ ...nuevoProyecto, [e.target.name]: e.target.value });
   };
@@ -230,28 +174,19 @@ export default function Proyectos() {
   const handleCrearProyecto = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("access");
-    console.log("[DEBUG] handleCrearProyecto comunidadId:", comunidadId);
-    console.log("[DEBUG] handleCrearProyecto periodoVigente:", periodoVigente);
     if (!comunidadId) {
       alert("No se pudo obtener la comunidad del usuario.");
-      console.log("[DEBUG] ERROR: comunidadId no disponible");
       return;
     }
     if (!periodoVigente || !periodoVigente.id) {
       alert(
         "No hay un Periodo vigente seleccionado. Verifique que exista un periodo activo para la fecha de hoy."
       );
-      console.log(
-        "[DEBUG] ERROR: periodoVigente no disponible",
-        periodoVigente
-      );
       return;
     }
     const presupuestoFormateado = Number(
       nuevoProyecto.presupuesto_total
     ).toFixed(2);
-    console.log("[DEBUG] Formulario nuevoProyecto:", nuevoProyecto);
-    console.log("[DEBUG] presupuestoFormateado:", presupuestoFormateado);
     const formData = new FormData();
     formData.append("nombre", nuevoProyecto.nombre);
     formData.append("descripcion", nuevoProyecto.descripcion);
@@ -278,12 +213,10 @@ export default function Proyectos() {
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-      console.log("[DEBUG] Respuesta crear proyecto status:", res.status);
       const text = await res.text();
-      console.log("[DEBUG] Respuesta crear proyecto text:", text);
       if (res.ok) {
-        setEtapa(2);
-        fetchProyectos(); // <-- 4. ESTA LLAMADA AHORA SÍ FUNCIONA
+        setEtapa(0); // Ocultar formulario al crear
+        fetchProyectos();
         setNuevoProyecto({
           nombre: "",
           descripcion: "",
@@ -297,18 +230,13 @@ export default function Proyectos() {
         });
       } else {
         alert("Error al crear el proyecto: " + text);
-        console.log("[DEBUG] ERROR: No se pudo crear el proyecto:", text);
       }
     } catch (err) {
-      // Este 'catch' ahora solo atrapará errores de red REALES
       alert("Error de red al crear el proyecto: " + err.message);
-      console.log("[DEBUG] ERROR: Red al crear proyecto", err);
     }
   };
 
-  // Etapa 2: Revisión auditor
   const handleAprobarProyecto = () => {
-    // Aquí iría la lógica para aprobar el proyecto en el backend
     setEtapa(3);
   };
 
@@ -359,7 +287,6 @@ export default function Proyectos() {
               required
             />
           </div>
-          {/* Campo periodo eliminado, se asigna automáticamente */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-taupe mb-1">Fecha Inicio</label>
@@ -472,63 +399,9 @@ export default function Proyectos() {
           </button>
         </form>
       )}
-      {/* Etapa 2: Revisión auditor solo para auditores */}
-      {etapa === 2 && isAuditor && (
-        <div className="bg-white rounded-lg shadow p-6 border border-gray-200 max-w-xl mx-auto space-y-4">
-          <h3 className="text-lg font-bold text-indigo mb-2">
-            Etapa 2: Revisión por Auditor
-          </h3>
-          <p className="text-taupe">
-            Un auditor debe revisar la documentación cargada y aprobar el
-            proyecto para avanzar.
-          </p>
-          <button
-            className="bg-indigo text-white px-4 py-2 rounded-lg font-semibold"
-            onClick={handleAprobarProyecto}
-          >
-            Aprobar Proyecto
-          </button>
-        </div>
-      )}
-      {/* Etapa 3: Resumen general */}
-      {etapa === 3 && (
-        <div className="bg-white rounded-lg shadow p-6 border border-gray-200 max-w-xl mx-auto space-y-4">
-          <h3 className="text-lg font-bold text-indigo mb-2">
-            Etapa 3: Resumen General
-          </h3>
-          <div className="mb-2">
-            <span className="font-semibold text-taupe">Nombre:</span>{" "}
-            {nuevoProyecto.nombre}
-          </div>
-          <div className="mb-2">
-            <span className="font-semibold text-taupe">Presupuesto:</span> $
-            {formatMonto(nuevoProyecto.presupuesto)}
-          </div>
-          <div className="mb-2">
-            <span className="font-semibold text-taupe">
-              Respaldo de Asamblea:
-            </span>{" "}
-            {nuevoProyecto.documentos.asamblea
-              ? nuevoProyecto.documentos.asamblea.name
-              : "Sin archivo"}
-          </div>
-          <div className="mb-2">
-            <span className="font-semibold text-taupe">Cotizaciones:</span>{" "}
-            {nuevoProyecto.documentos.cotizaciones
-              ? nuevoProyecto.documentos.cotizaciones.name
-              : "Sin archivo"}
-          </div>
-          <div className="mb-2">
-            <span className="font-semibold text-taupe">Elegido:</span>{" "}
-            {nuevoProyecto.documentos.elegido
-              ? nuevoProyecto.documentos.elegido.name
-              : "Sin archivo"}
-          </div>
-          <div className="mt-4 text-green-600 font-bold">
-            Proyecto aprobado y listo para ejecución.
-          </div>
-        </div>
-      )}
+      {/* Etapa 2: Revisión auditor (Oculto, sin lógica) */}
+      {/* Etapa 3: Resumen general (Oculto, sin lógica) */}
+
       {/* Listado de proyectos existentes */}
       <div className="mt-8">
         <h3 className="text-lg font-bold text-deep-purple mb-2">
@@ -555,8 +428,11 @@ export default function Proyectos() {
               </thead>
               <tbody>
                 {proyectos.map((p, idx) => {
-                  const presupuesto = p.presupuesto_total || p.presupuesto || 0;
-                  const montoRendido = p.monto_rendido || 0;
+                  // --- AQUÍ ESTÁ LA CORRECCIÓN ---
+                  // Simplificamos la lógica para usar solo los campos correctos de la BD
+                  const presupuesto = p.presupuesto_total || 0;
+                  const montoRendido = p.total_rendido || 0;
+                  // -------------------------------
                   const faltaPorRendir =
                     Number(presupuesto) - Number(montoRendido);
                   return (
@@ -576,6 +452,7 @@ export default function Proyectos() {
                       <td className="px-4 py-2">
                         ${formatMonto(faltaPorRendir)}
                       </td>
+
                       <td className="px-4 py-2 space-x-2">
                         {p.acta_url ? (
                           <a
@@ -588,8 +465,32 @@ export default function Proyectos() {
                             Acta
                           </a>
                         ) : (
-                          <span className="text-xs text-taupe">Sin docs</span>
+                          <span className="text-xs text-taupe">Sin Acta</span>
                         )}
+
+                        {p.cotizaciones_url ? (
+                          <a
+                            href={p.cotizaciones_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block bg-indigo text-white px-2 py-1 rounded text-xs font-semibold hover:bg-taupe"
+                            download
+                          >
+                            Cotiz.
+                          </a>
+                        ) : null}
+
+                        {p.elegido_url ? (
+                          <a
+                            href={p.elegido_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block bg-indigo text-white px-2 py-1 rounded text-xs font-semibold hover:bg-taupe"
+                            download
+                          >
+                            Elegido
+                          </a>
+                        ) : null}
                       </td>
                     </tr>
                   );

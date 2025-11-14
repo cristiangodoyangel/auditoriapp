@@ -1,7 +1,12 @@
-from django.contrib import admin
-from .models import Rendicion
+# rendiciones/apps.py
+from django.apps import AppConfig
 
-@admin.register(Rendicion)
-class RendicionAdmin(admin.ModelAdmin):
-    list_display = ('proyecto', 'monto_rendido', 'descripcion', 'estado_aprobacion', 'fecha_rendicion')
-    search_fields = ('proyecto__nombre', 'estado_aprobacion', 'descripcion')
+class RendicionesConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'rendiciones'
+
+    # --- AÑADE ESTA FUNCIÓN ---
+    def ready(self):
+        # Importar las señales para que se registren
+        import rendiciones.signals
+    # --------------------------

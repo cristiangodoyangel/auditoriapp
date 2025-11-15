@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // <--- CORRECCIÓN: Importar Link
-import logo from '../assets/logo.ico'; // <--- CORRECCIÓN: Importar logo
+import { Link } from 'react-router-dom';
+import logo from '../assets/logo.ico';
 
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -8,9 +8,7 @@ export default function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // --- CORRECCIÓN: Eliminada la definición de NavLink (no se usa aquí) ---
-
-  // --- Tu lógica de handleSubmit está perfecta ---
+  // --- (Tu lógica de handleSubmit está perfecta) ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -63,26 +61,29 @@ export default function Login({ onLogin }) {
   // --- FIN DE LA LÓGICA ---
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-base-200">
+    // Este contenedor ya centra todo y es responsive
+    <div className="flex items-center justify-center min-h-screen bg-base-200 p-4"> {/* <-- Añadido p-4 para márgenes en móvil */}
       
-      {/* --- CORRECCIÓN: Contenedor para centrar logo y card --- */}
+      {/* Este contenedor ya limita el ancho en desktop y usa 100% en móvil */}
       <div className="w-full max-w-md">
 
-        {/* --- CORRECCIÓN: Logo movido aquí, encima del card --- */}
-        <div className="flex justify-center mb-4" style={{ flexDirection: 'column', alignItems: 'center' }} >
+        {/* --- CORRECCIONES AQUÍ --- */}
+        {/* 1. Reemplazamos 'style' por clases de Tailwind */}
+        {/* 2. Quitamos 'ml-2' y usamos 'mt-4' (margin top) porque es una columna */}
+        <div className="flex flex-col items-center justify-center mb-4">
           
-            {/* --- CORRECCIÓN: Clases de tamaño (w-16) --- */}
-            <img src={logo} alt="Logo" className="w-22 h-22" />
-            <span className="ml-2 text-base-content text-xl font-semibold">Gestión Comunidades</span>
+            {/* 3. Corregido a 'w-24 h-24' (clase válida) */}
+            <img src={logo} alt="Logo" className="w-24 h-24" />
+            <span className="mt-4 text-base-content text-xl font-semibold">Gestión Comunidades</span>
           
         </div>
+        {/* --- FIN DE CORRECCIONES --- */}
 
-        {/* --- Card de Login --- */}
+
+        {/* --- Card de Login (ya es responsive) --- */}
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
             
-            {/* --- CORRECCIÓN: Eliminado el bloque .navbar-start de aquí --- */}
-
             <form onSubmit={handleSubmit}>
               <h2 className="card-title justify-center text-2xl mb-6 text-neutral">
                 Iniciar Sesión

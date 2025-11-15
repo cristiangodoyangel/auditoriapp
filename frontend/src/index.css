@@ -2,3 +2,22 @@
 @plugin "daisyui" {
    themes: all;
  }
+
+:root {
+  --color-primary: #6F574E;
+  --color-primary2: #d1d1d1;
+  --color-primary-focus: #c4af3867;
+  --color-secondary: #3b1f07;
+  --color-warning: #91191f;
+  --color-white: #f4f4f5;
+
+  --bg-sec: #ae9f9a;
+  --bg-tab: #cacaca;
+  --text-sec: #000000;
+
+  font-size: 20px;
+  --hover: {
+    background-color: var(--color-primary-focus);
+  } 
+}
+

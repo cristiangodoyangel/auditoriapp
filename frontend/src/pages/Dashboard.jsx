@@ -73,6 +73,15 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 p-4 rounded-box bg-base-200 shadow-sm">
+        <div>
+          <h2 className="text-2xl font-bold text-primary">ESTADO ACTUAL DE SU COMUNIDAD</h2>
+          <p className="text-base-content/70">
+            Resumen de montos y proyectos en gestión
+          </p>
+        </div>
+        
+      </div>
       
       {/* --- CAMBIO DAISYUI: Sección Montos (Stats) --- */}
       <div className="stats stats-vertical lg:stats-horizontal shadow w-full">
@@ -85,13 +94,13 @@ export default function Dashboard() {
         
         <div className="stat">
           <div className="stat-title">Monto Rendido</div>
-          <div className="stat-value text-secondary">{loading ? "..." : formatMonto(montoRendido)}</div>
+          <div className="stat-value text-primary">{loading ? "..." : formatMonto(montoRendido)}</div>
           <div className="stat-desc">Total gastado y justificado</div>
         </div>
         
         <div className="stat">
           <div className="stat-title">Monto por Rendir</div>
-          <div className="stat-value">{loading ? "..." : formatMonto(montoPorRendir)}</div>
+          <div className="stat-value text-warning">{loading ? "..." : formatMonto(montoPorRendir)}</div>
           <div className="stat-desc">Saldo restante</div>
         </div>
         
@@ -113,12 +122,12 @@ export default function Dashboard() {
         
         <div className="stat">
           <div className="stat-title">Proyectos Validados</div>
-          <div className="stat-value text-success">{loading ? "..." : proyectosValidados}</div>
+          <div className="stat-value text-primary">{loading ? "..." : proyectosValidados}</div>
         </div>
 
         <div className="stat">
           <div className="stat-title">Proyectos Rechazados</div>
-          <div className="stat-value text-error">{loading ? "..." : proyectosRechazados}</div>
+          <div className="stat-value text-primary">{loading ? "..." : proyectosRechazados}</div>
         </div>
         
       </div>
@@ -154,9 +163,9 @@ export default function Dashboard() {
                       {/* --- CAMBIO DAISYUI: Badge --- */}
                       <div className={`badge ${
                         p.estado === 'Aprobado' ? 'badge-success' : 
-                        p.estado === 'Rechazado' ? 'badge-error' : 'badge-warning'
+                        p.estado === 'Rechazado' ? 'badge-primary' : 'badge-primary'
                       }`}>
-                        {p.estado === 'Borrador' ? 'Pendiente Val.' : p.estado}
+                        {p.estado === 'Borrador' ? 'Pendiente de validación' : p.estado}
                       </div>
                       
                     </div>

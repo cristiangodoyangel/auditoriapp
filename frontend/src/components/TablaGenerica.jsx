@@ -1,20 +1,11 @@
 import React, { useState, useMemo } from 'react';
 
-/**
- * Componente reutilizable para mostrar tablas con encabezados y filas personalizadas, búsqueda y paginación.
- * @param {Array} columns - [{ key: 'nombre', label: 'Nombre' }, ...]
- * @param {Array} data - Array de objetos a mostrar.
- * @param {Function} renderCell - (row, col) => contenido personalizado (opcional)
- * @param {String} emptyText - Texto a mostrar si no hay datos.
- * @param {String} className - Clases extra para la tabla.
- * @param {Number} rowsPerPage - Cantidad de filas por página.
- */
 function TablaGenerica({ columns, data, renderCell, emptyText = 'Sin datos aún', className = '', rowsPerPage = 8 }) {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState(rowsPerPage);
 
-  // Filtrar por búsqueda en cualquier columna
+  // --- Tu lógica de filtrado (perfecta, sin cambios) ---
   const filteredData = useMemo(() => {
     if (!search) return data;
     return data.filter(row =>
@@ -25,97 +16,114 @@ function TablaGenerica({ columns, data, renderCell, emptyText = 'Sin datos aún'
     );
   }, [search, data, columns]);
 
-  // Paginación
+  // --- Tu lógica de paginación (perfecta, sin cambios) ---
   const totalPages = Math.max(1, Math.ceil(filteredData.length / rows));
   const pagedData = filteredData.slice((page - 1) * rows, page * rows);
 
-  // Cambiar página si la búsqueda reduce el total
   React.useEffect(() => {
     if (page > totalPages) setPage(1);
   }, [totalPages, page]);
 
   return (
-    <div className={`overflow-x-auto`}>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 gap-2">
-        <input
-          type="text"
-          className="border rounded-lg px-3 py-2 w-full md:w-1/3"
-          placeholder="Buscar..."
-          value={search}
-          onChange={e => { setSearch(e.target.value); setPage(1); }}
-        />
-        <div className="flex gap-2 items-center">
-          <label className="text-taupe font-semibold">Filas:</label>
-          <select
-            className="border rounded px-2 py-1"
-            value={rows}
-            onChange={e => { setRows(Number(e.target.value)); setPage(1); }}
-          >
-            <option value={8}>8</option>
-            <option value={10}>10</option>
-            <option value={15}>15</option>
-          </select>
+    <div className="w-full space-y-4"> {/* Contenedor principal */}
+
+      {/* --- CAMBIO DAISYUI: Controles de Búsqueda y Filas --- */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="form-control w-full md:w-1/3">
+          <input
+            type="text"
+            className="input input-bordered" // <-- Estilo DaisyUI
+            placeholder="Buscar..."
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
+          />
+        </div>
+        <div className="form-control w-full md:w-auto">
+          <div className="input-group">
+            <span className="bg-base-300">Filas:</span>
+            <select
+              className="select select-bordered" // <-- Estilo DaisyUI
+              value={rows}
+              onChange={e => { setRows(Number(e.target.value)); setPage(1); }}
+            >
+              <option value={8}>8</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+            </select>
+          </div>
         </div>
       </div>
-      <table
-        className={`min-w-full bg-white rounded-lg shadow border border-[2px] border-[#4B2992] ${className}`}
-        style={{ borderCollapse: 'collapse' }}
-      >
-        <thead className="bg-taupe text-white">
-          <tr>
-            {columns.map(col => (
-              <th
-                key={col.key}
-                className="px-4 py-2 text-left border-b-2 border-[#4B2992] border-r border-[#4B2992]"
-                style={{ borderRight: '1px solid #4B2992', borderBottom: '2px solid #4B2992' }}
-              >
-                {col.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {pagedData.length === 0 ? (
+      {/* --- Fin de Controles --- */}
+      
+
+      {/* --- CAMBIO DAISYUI: Wrapper de la Tabla (el que te gustó) --- */}
+      <div className={`overflow-x-auto rounded-box border border-base-content/20 bg-base-100 ${className}`}>
+        
+        {/* --- CAMBIO DAISYUI: Tabla --- */}
+        <table className="table">
+          {/* --- CAMBIO DAISYUI: Head (limpiado) --- */}
+          <thead className="bg-base-200">
             <tr>
-              <td colSpan={columns.length} className="text-center text-taupe py-4 border-b border-[#4B2992]">{emptyText}</td>
+              <th>#</th> {/* Columna de numeración */}
+              {columns.map(col => (
+                <th key={col.key}>{col.label}</th>
+              ))}
             </tr>
-          ) : (
-            pagedData.map((row, idx) => (
-              <tr
-                key={row.id || idx}
-                className="transition-colors duration-150"
-                style={{ cursor: 'pointer' }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#F3F4F6'} // gray-100
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = ''}
-              >
-                {columns.map((col, cidx) => (
-                  <td
-                    key={col.key}
-                    className="px-4 py-2 text-left border-b border-[#4B2992] border-r border-[#4B2992]"
-                    style={{ borderRight: cidx === columns.length - 1 ? 'none' : '1px solid #4B2992', borderBottom: '1px solid #4B2992' }}
-                  >
-                    {renderCell ? renderCell(row, col) : row[col.key]}
-                  </td>
-                ))}
+          </thead>
+
+          {/* --- CAMBIO DAISYUI: Body (limpiado) --- */}
+          <tbody>
+            {pagedData.length === 0 ? (
+              <tr>
+                {/* +1 por la nueva columna '#' */}
+                <td colSpan={columns.length + 1} className="text-center p-8 text-base-content/70">
+                  {emptyText}
+                </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-      {/* Paginación debajo de la tabla */}
-      <div className="flex justify-end items-center gap-2 mt-4">
-        <button
-          className="px-3 py-1 rounded-lg border bg-white text-indigo font-bold disabled:opacity-50"
-          onClick={() => setPage(p => Math.max(1, p - 1))}
-          disabled={page === 1}
-        >Anterior</button>
-        <span className="text-taupe">Página {page} de {totalPages}</span>
-        <button
-          className="px-3 py-1 rounded-lg border bg-white text-indigo font-bold disabled:opacity-50"
-          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-          disabled={page === totalPages}
-        >Siguiente</button>
+            ) : (
+              pagedData.map((row, idx) => (
+                <tr key={row.id || idx}>
+                  <th>{(page - 1) * rows + idx + 1}</th> {/* Numeración */}
+                  {columns.map(col => (
+                    <td key={col.key}>
+                      {renderCell ? renderCell(row, col) : row[col.key]}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            )}
+          </tbody>
+
+        </table>
       </div>
+      {/* --- Fin de la Tabla --- */}
+
+      {/* --- CAMBIO DAISYUI: Paginación --- */}
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-base-content/70">
+            Página {page} de {totalPages} (Filas {filteredData.length})
+          </span>
+          <div className="join">
+            <button
+              className="join-item btn btn-outline btn-sm"
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+            >
+              Anterior
+            </button>
+            <button
+              className="join-item btn btn-outline btn-sm"
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      )}
+      {/* --- Fin de Paginación --- */}
+
     </div>
   );
 }

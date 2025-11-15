@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom'; // <--- CORRECCIÓN: Importar Link
+import logo from '../assets/logo.ico'; // <--- CORRECCIÓN: Importar logo
 
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -6,6 +8,9 @@ export default function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // --- CORRECCIÓN: Eliminada la definición de NavLink (no se usa aquí) ---
+
+  // --- Tu lógica de handleSubmit está perfecta ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -20,12 +25,10 @@ export default function Login({ onLogin }) {
       });
       const data = await res.json();
       if (res.ok && data.access) {
-        // Guardar token si es necesario
         localStorage.setItem('access', data.access);
         localStorage.setItem('refresh', data.refresh);
         localStorage.setItem('user', JSON.stringify(data.user));
 
-        // Si el usuario es admin de comunidad, consultar periodo activo
         if (data.user.rol === 'admin' && data.user.comunidad && data.user.comunidad.id) {
           try {
             const periodoRes = await fetch('http://localhost:8000/api/auth/inicio-admin-comunidad/', {
@@ -57,22 +60,80 @@ export default function Login({ onLogin }) {
     }
     setLoading(false);
   };
+  // --- FIN DE LA LÓGICA ---
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border border-secondary">
-        <h2 className="text-2xl font-bold mb-4 text-indigo">Iniciar Sesión</h2>
-        <div className="mb-4">
-          <label className="block text-taupe mb-2">Usuario</label>
-          <input type="text" className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-indigo" value={username} onChange={e => setUsername(e.target.value)} />
+    <div className="flex items-center justify-center min-h-screen bg-base-200">
+      
+      {/* --- CORRECCIÓN: Contenedor para centrar logo y card --- */}
+      <div className="w-full max-w-md">
+
+        {/* --- CORRECCIÓN: Logo movido aquí, encima del card --- */}
+        <div className="flex justify-center mb-4" style={{ flexDirection: 'column', alignItems: 'center' }} >
+          
+            {/* --- CORRECCIÓN: Clases de tamaño (w-16) --- */}
+            <img src={logo} alt="Logo" className="w-22 h-22" />
+            <span className="ml-2 text-base-content text-xl font-semibold">Gestión Comunidades</span>
+          
         </div>
-        <div className="mb-4">
-          <label className="block text-taupe mb-2">Contraseña</label>
-          <input type="password" className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-indigo" value={password} onChange={e => setPassword(e.target.value)} />
+
+        {/* --- Card de Login --- */}
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            
+            {/* --- CORRECCIÓN: Eliminado el bloque .navbar-start de aquí --- */}
+
+            <form onSubmit={handleSubmit}>
+              <h2 className="card-title justify-center text-2xl mb-6 text-neutral">
+                Iniciar Sesión
+              </h2>
+
+              <div className="form-control w-full mb-4">
+                <label className="label">
+                  <span className="label-text">Usuario</span>
+                </label>
+                <input 
+                  type="text" 
+                  className="input input-bordered w-full" 
+                  value={username} 
+                  onChange={e => setUsername(e.target.value)} 
+                />
+              </div>
+
+              <div className="form-control w-full mb-4">
+                <label className="label">
+                  <span className="label-text">Contraseña</span>
+                </label>
+                <input 
+                  type="password" 
+                  className="input input-bordered w-full" 
+                  value={password} 
+                  onChange={e => setPassword(e.target.value)} 
+                />
+              </div>
+
+              {error && (
+                <div className="alert alert-error shadow-sm my-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div className="form-control mt-6">
+                <button 
+                  type="submit" 
+                  className="btn btn-neutral w-full"
+                  disabled={loading}
+                >
+                  {loading && <span className="loading loading-spinner"></span>}
+                  {loading ? 'Ingresando...' : 'Entrar'}
+                </button>
+              </div>
+            </form>
+
+          </div>
         </div>
-        {error && <div className="text-red-500 mb-4">{error}</div>}
-        <button type="submit" className="w-full bg-indigo text-white py-2 rounded-lg font-semibold hover:bg-taupe transition" disabled={loading}>{loading ? 'Ingresando...' : 'Entrar'}</button>
-      </form>
+      </div>
     </div>
   );
 }

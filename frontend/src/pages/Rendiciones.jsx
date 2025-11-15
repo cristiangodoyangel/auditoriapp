@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom'; // <-- 1. FALTABA IMPORTAR useNavigate
+import { useNavigate } from 'react-router-dom';
+import TablaGenerica from '../components/TablaGenerica'; // <-- ¡Ahora sí la usamos!
 
 // --- (Funciones de ayuda para formato) ---
 function formatFechaCL(fecha) {
@@ -10,8 +11,8 @@ function formatFechaCL(fecha) {
 }
 
 function formatMonto(monto) {
-  if (monto === undefined || monto === null || isNaN(monto)) return 'Sin datos';
-  return Number(monto).toLocaleString('es-CL', { maximumFractionDigits: 0 });
+  if (monto === undefined || monto === null || isNaN(monto)) return '$0';
+  return '$' + Number(monto).toLocaleString('es-CL', { maximumFractionDigits: 0 });
 }
 // ------------------------------------------
 
@@ -19,6 +20,7 @@ export default function Rendiciones() {
   const [rendiciones, setRendiciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
   const [form, setForm] = useState({
     proyecto: '',
     documento: null,
@@ -27,15 +29,14 @@ export default function Rendiciones() {
     fecha_rendicion: '',
   });
   const [proyectos, setProyectos] = useState([]);
-
-  // --- 2. FALTABAN ESTOS ESTADOS Y EL HOOK ---
   const [comunidadId, setComunidadId] = useState(null);
   const [periodoVigente, setPeriodoVigente] = useState(null);
   const [showNoPeriodoModal, setShowNoPeriodoModal] = useState(false);
   const navigate = useNavigate();
-  // -----------------------------------------
 
-  const fetchRendiciones = useCallback(async () => {
+  // --- (Toda la lógica de fetch y handleSubmit está perfecta) ---
+    const fetchRendiciones = useCallback(async () => {
+    // ... tu fetchRendiciones ...
     const token = localStorage.getItem('access');
     setLoading(true);
     try {
@@ -50,13 +51,12 @@ export default function Rendiciones() {
     setLoading(false);
   }, [setLoading, setRendiciones]);
   
-  // --- 3. FALTABA TODA LA LÓGICA EN useEffect ---
   useEffect(() => {
     const token = localStorage.getItem('access');
 
-    // (Necesitamos esta función de Proyectos.jsx)
     async function fetchComunidad() {
-      let comunidadFromToken = null;
+      // ... tu fetchComunidad ...
+       let comunidadFromToken = null;
       try {
         const user = JSON.parse(localStorage.getItem('user'));
         if (user && user.comunidad && user.comunidad.id) {
@@ -95,8 +95,8 @@ export default function Rendiciones() {
       }
     }
     
-    // (Necesitamos esta función de Proyectos.jsx)
     async function fetchPeriodoVigente(idComunidad) {
+      // ... tu fetchPeriodoVigente ...
       if (!idComunidad) {
         setPeriodoVigente(null);
         return;
@@ -136,8 +136,8 @@ export default function Rendiciones() {
       }
     }
     
-    // (Función que ya tenías para el <select>)
     async function fetchProyectos() {
+        // ... tu fetchProyectos ...
         fetch('http://localhost:8000/api/proyectos/', {
           headers: { 'Authorization': `Bearer ${token}` }
         })
@@ -146,36 +146,32 @@ export default function Rendiciones() {
         .catch(() => setProyectos([]));
     }
     
-    // El Orquestador
     async function cargarDatosIniciales() {
       const idComunidad = await fetchComunidad();
-      await fetchPeriodoVigente(idComunidad); // <-- Chequeo de periodo
-      await fetchRendiciones(); // Carga la tabla de rendiciones
-      await fetchProyectos(); // Carga los proyectos para el dropdown
+      await fetchPeriodoVigente(idComunidad); 
+      await fetchRendiciones(); 
+      await fetchProyectos(); 
     }
 
     cargarDatosIniciales();
   }, [fetchRendiciones]);
-  // ------------------------------------------
-
-  // --- 4. FALTABA ESTE MANEJADOR ---
-  // Este manejador comprueba el periodo ANTES de mostrar el formulario
+  
   const handleShowForm = () => {
     if (!periodoVigente) {
-      setShowNoPeriodoModal(true); // Si no hay periodo, muestra el modal
+      setShowNoPeriodoModal(true); 
     } else {
-      setShowForm(true); // Si hay periodo, muestra el formulario
+      setShowForm(true); 
     }
   };
-  // ---------------------------------
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormLoading(true); // <-- Activar loading
     const token = localStorage.getItem('access');
     
-    // (Doble chequeo por si acaso)
     if (!periodoVigente) {
         setShowNoPeriodoModal(true);
+        setFormLoading(false); // <-- Desactivar
         return;
     }
 
@@ -199,6 +195,7 @@ export default function Rendiciones() {
       }
     } catch (err) {
       alert(err.message);
+      setFormLoading(false); // <-- Desactivar
       return;
     }
     
@@ -231,6 +228,7 @@ export default function Rendiciones() {
         } catch {
             alert('Error al guardar la rendición: ' + resText);
         }
+        setFormLoading(false); // <-- Desactivar
         return; 
       }
 
@@ -241,135 +239,152 @@ export default function Rendiciones() {
     } catch (err) {
       alert(err.message);
     }
+    setFormLoading(false); // <-- Desactivar
   };
 
+  // --- FIN DE LA LÓGICA ---
+
+
+  // --- CORRECCIÓN: Definición de Columnas para TablaGenerica ---
+  const columns = [
+    { key: 'proyecto', label: 'Proyecto' },
+    { key: 'descripcion', label: 'Descripción' },
+    { key: 'monto', label: 'Monto' },
+    { key: 'fecha', label: 'Fecha' },
+    { key: 'documento', label: 'Documento' },
+  ];
+
+  // --- CORRECCIÓN: Mapeo de Datos para TablaGenerica ---
+  const dataParaTabla = rendiciones.map(r => ({
+    proyecto: r.proyecto_nombre || '...',
+    descripcion: r.descripcion,
+    monto: formatMonto(r.monto_rendido),
+    fecha: formatFechaCL(r.fecha_rendicion),
+    documento: (
+      r.documentos_adjuntos && r.documentos_adjuntos.length > 0 ? (
+        r.documentos_adjuntos.map(doc => (
+            <a 
+              key={doc.id}
+              href={doc.archivo} 
+              download 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              title={doc.nombre}
+              className="btn btn-outline btn-xs"
+            >
+              Ver PDF
+            </a>
+        ))
+      ) : (
+        <span>-</span>
+      )
+    )
+  }));
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       
-      {/* (Tu JSX del modal está perfecto, solo actualicé el 'onClick') */}
-      {showNoPeriodoModal && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md text-center">
-            <h2 className="text-2xl font-bold mb-4 text-indigo">Atención</h2>
-            <p className="text-taupe mb-6">
-              No se encontró un Periodo activo para su comunidad.
-              <br />
-              Debe crear un periodo antes de poder gestionar proyectos.
-            </p>
+      {/* --- Modal "Sin Periodo" (Estilizado) --- */}
+      <dialog className={`modal ${showNoPeriodoModal ? "modal-open" : ""}`}>
+        <div className="modal-box">
+          <h3 className="font-bold text-lg text-error">Atención</h3>
+          <p className="py-4 text-base-content/80">
+            No se encontró un Periodo activo para su comunidad.
+            <br />
+            Debe crear un periodo antes de poder gestionar proyectos.
+          </p>
+          <div className="modal-action">
             <button
-              className="bg-indigo text-white px-6 py-2 rounded-lg font-semibold shadow hover:bg-taupe"
-              onClick={() => navigate("/crear-periodo")} // Redirige a la página de crear-periodo
+              className="btn btn-primary"
+              onClick={() => navigate("/crear-periodo")}
             >
               Crear Periodo
             </button>
           </div>
         </div>
-      )}
+      </dialog>
 
-      <div className="flex justify-end mb-4">
-        {/* --- 5. FALTABA ACTUALIZAR EL onClick --- */}
-        <button 
-          className="bg-indigo text-white px-4 py-2 rounded-lg shadow font-semibold hover:bg-taupe" 
-          onClick={handleShowForm} // Cambiado de 'setShowForm(true)'
-        >
+      {/* --- Encabezado Estándar --- */}
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 p-4 rounded-box bg-base-200 shadow-sm">
+        <div>
+          <h2 className="text-2xl font-bold text-primary">Gestión de Rendiciones</h2>
+          <p className="text-base-content/70">
+            Carga y justificación de gastos del proyecto.
+          </p>
+        </div>
+        <button className="btn btn-primary" onClick={handleShowForm}>
           Crear Rendición
         </button>
-        {/* ------------------------------------- */}
       </div>
 
-      {/* (El resto de tu código de formulario y tabla está bien) */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg relative">
-            <button className="absolute top-2 right-2 text-taupe text-xl" onClick={() => setShowForm(false)}>&times;</button>
-            <h2 className="text-xl font-bold mb-4 text-deep-purple">Nueva Rendición</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-taupe mb-1">Proyecto</label>
-                <select className="w-full border rounded px-3 py-2" required value={form.proyecto} onChange={e => setForm(f => ({ ...f, proyecto: e.target.value }))}>
-                  <option value="">Selecciona un proyecto</option>
-                  {proyectos.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-                </select>
+      {/* --- Modal Formulario "Crear Rendición" (Estilizado) --- */}
+      <dialog className={`modal ${showForm ? "modal-open" : ""}`}>
+        <div className="modal-box w-11/12 max-w-2xl">
+          <h3 className="font-bold text-lg text-primary">Nueva Rendición</h3>
+          <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+            
+            <div className="form-control">
+              <label className="label"><span className="label-text">Proyecto</span></label>
+              <select className="select select-bordered" required value={form.proyecto} onChange={e => setForm(f => ({ ...f, proyecto: e.target.value }))}>
+                <option value="">Selecciona un proyecto</option>
+                {proyectos.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+              </select>
+            </div>
+
+            <div className="form-control">
+              <label className="label"><span className="label-text">Documento PDF (Factura/Boleta)</span></label>
+              <input
+                className="file-input file-input-bordered w-full"
+                type="file"
+                accept="application/pdf"
+                required
+                onChange={e => setForm(f => ({ ...f, documento: e.target.files[0] }))}
+              />
+            </div>
+
+            <div className="form-control">
+              <label className="label"><span className="label-text">Monto Rendido</span></label>
+              <div className="input-group">
+                <span>$</span>
+                <input className="input input-bordered w-full" type="number" required value={form.monto_rendido} onChange={e => setForm(f => ({ ...f, monto_rendido: e.target.value }))} />
               </div>
-              <div className="mb-4">
-                <label className="block text-taupe mb-1">Documento PDF (Factura/Boleta)</label>
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  type="file"
-                  accept="application/pdf"
-                  required
-                  onChange={e => setForm(f => ({ ...f, documento: e.target.files[0] }))}
-                />
-                {form.documento && (
-                  <div className="mt-2 text-sm text-taupe">Archivo seleccionado: {form.documento.name}</div>
-                )}
-              </div>
-              <div className="mb-4">
-                <label className="block text-taupe mb-1">Monto Rendido</label>
-                <input className="w-full border rounded px-3 py-2" type="number" required value={form.monto_rendido} onChange={e => setForm(f => ({ ...f, monto_rendido: e.target.value }))} />
-              </div>
-              <div className="mb-4">
-                <label className="block text-taupe mb-1">Descripción</label>
-                <textarea className="w-full border rounded px-3 py-2" required value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))} />
-              </div>
-              <div className="mb-4">
-                <label className="block text-taupe mb-1">Fecha de Rendición</label>
-                <input className="w-full border rounded px-3 py-2" type="date" required value={form.fecha_rendicion} onChange={e => setForm(f => ({ ...f, fecha_rendicion: e.target.value }))} />
-              </div>
-              <button className="bg-indigo text-white px-4 py-2 rounded-lg shadow font-semibold hover:bg-taupe" type="submit">Guardar</button>
-            </form>
-          </div>
+            </div>
+
+            <div className="form-control">
+              <label className="label"><span className="label-text">Descripción</span></label>
+              <textarea className="textarea textarea-bordered w-full" required value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))} />
+            </div>
+
+            <div className="form-control">
+              <label className="label"><span className="label-text">Fecha de Rendición</span></label>
+              <input className="input input-bordered w-full" type="date" required value={form.fecha_rendicion} onChange={e => setForm(f => ({ ...f, fecha_rendicion: e.target.value }))} />
+            </div>
+
+            <div className="modal-action">
+              <button type="button" className="btn btn-ghost" onClick={() => setShowForm(false)}>Cancelar</button>
+              <button className="btn btn-primary" type="submit" disabled={formLoading}>
+                {formLoading && <span className="loading loading-spinner"></span>}
+                {formLoading ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </form>
         </div>
+      </dialog>
+
+      {/* --- CORRECCIÓN: Usando TablaGenerica --- */}
+      {loading ? (
+        <div className="text-center p-12">
+          <span className="loading loading-lg loading-spinner text-primary"></span>
+        </div>
+      ) : (
+        <TablaGenerica
+          columns={columns}
+          data={dataParaTabla}
+          emptyText="No hay rendiciones registradas."
+          rowsPerPage={8}
+        />
       )}
-      <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-        <h2 className="text-xl font-bold text-deep-purple mb-4">Rendiciones Realizadas</h2>
-        {loading ? (
-          <div className="text-center text-taupe">Cargando...</div>
-        ) : rendiciones.length === 0 ? (
-          <div className="text-center text-taupe">No hay rendiciones registradas.</div>
-        ) : (
-          <table className="min-w-full table-auto">
-            <thead>
-              <tr className="bg-background">
-                <th className="px-4 py-2 text-left text-taupe">Proyecto</th>
-                <th className="px-4 py-2 text-left text-taupe">Descripción</th>
-                <th className="px-4 py-2 text-left text-taupe">Monto Rendido</th>
-                <th className="px-4 py-2 text-left text-taupe">Fecha</th>
-                <th className="px-4 py-2 text-left text-taupe">Documentos</th>
-              </tr>
-            </thead>
-            <tbody>
-                {rendiciones.map(r => (
-                  <tr key={r.id} className="border-b">
-                    <td className="px-4 py-2">{r.proyecto_nombre || '...'}</td>
-                    <td className="px-4 py-2">{r.descripcion}</td>
-                    <td className="px-4 py-2">${formatMonto(r.monto_rendido)}</td>
-                    <td className="px-4 py-2">{formatFechaCL(r.fecha_rendicion)}</td>
-                    <td className="px-4 py-2 text-center">
-                    {r.documentos_adjuntos && r.documentos_adjuntos.length > 0 ? (
-                        r.documentos_adjuntos.map(doc => (
-                            <a 
-                              key={doc.id}
-                              href={doc.archivo} 
-                              download 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              title={doc.nombre}
-                              className="inline-block bg-indigo text-white px-3 py-1 rounded shadow hover:bg-taupe transition mb-1 text-xs"
-                            >
-                              Ver PDF
-                            </a>
-                        ))
-                    ) : (
-                        <span>-</span>
-                    )}
-                    </td>
-                  </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {/* --- FIN DE LA CORRECCIÓN --- */}
     </div>
   );
 }

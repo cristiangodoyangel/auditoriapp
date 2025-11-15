@@ -8,7 +8,7 @@ import Periodos from './pages/Periodos';
 import Rendiciones from './pages/Rendiciones';
 import Login from './pages/Login';
 import CrearPeriodo from './pages/CrearPeriodo';
-import './App.css';
+
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('access'));

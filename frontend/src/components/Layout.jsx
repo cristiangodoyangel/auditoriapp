@@ -1,37 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import logo from '../assets/logo.ico';
 import { Link, useNavigate } from 'react-router-dom';
 
-const sidebarItems = [
-  { name: 'Dashboard', path: '/dashboard' },
-  { name: 'Proyectos', path: '/proyectos' },
-  { name: 'Socios', path: '/socios' },
-  { name: 'Periodos', path: '/periodos' },
-];
+// --- Iconos para la UI ---
+const MenuIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-5 h-5 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+);
+const LogoutIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+);
+// -------------------------
+
+const NavLink = ({ to, children }) => (
+  <li><Link to={to}>{children}</Link></li>
+);
 
 export default function Layout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const menuRef = React.useRef();
-  const buttonRef = React.useRef();
-
-  React.useEffect(() => {
-    if (!menuOpen) return;
-    function handleClickOutside(e) {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(e.target)
-      ) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [menuOpen]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -39,71 +25,95 @@ export default function Layout({ children }) {
     window.location.reload();
   };
 
+  const userComunidad = user?.es_auditor ? 'Rol: Auditor' : (user?.comunidad?.nombre || user?.comunidad_nombre || 'Comunidad');
+
   return (
-  <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex flex-1">
-        {/* Sidebar */}
-        <aside className="w-64 bg-indigo text-white flex flex-col py-8 px-6 border-r border-secondary min-h-screen rounded-lg">
-          {/* Logo encima del menú */}
-          <div className="flex justify-center mb-8">
-            <img src={logo} alt="Logo" className="w-26 h-26" />
-          </div>
-          <nav className="flex-1">
-            <ul className="space-y-6">
-              <li>
-                <a href="/dashboard" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Dashboard</a>
-              </li>
-              <li>
-                <a href="/proyectos" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Proyectos</a>
-              </li>
-              <li>
-                <a href="/rendiciones" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Rendiciones</a>
-              </li>
-                 <li>
-                <a href="/periodos" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Periodos</a>
-              </li>
-              <li>
-                <a href="/socios" className="hover:text-white hover:bg-taupe font-semibold rounded-lg px-2 py-1 transition">Socios</a>
-              </li>
-           
-              
-            </ul>
-          </nav>
-        </aside>
-        <div className="flex-1 flex flex-col">
-          <header className="bg-indigo border-secondary text-white flex items-center justify-between px-8 py-4 border-b border-secondary rounded-lg rounded-b-none">
-            <div className="flex flex-col items-start">
-              <h1 className="text-2xl font-bold">Gestión Comunidades</h1>
-              <span className="text-blush text-lg font-semibold mt-1">
-                {user?.es_auditor ? 'Auditores' : (user?.comunidad?.nombre || user?.comunidad_nombre || '')}
-              </span>
-            </div>
-            <div className="relative ">
-              <button
-                ref={buttonRef}
-                className="bg-taupe text-white px-4 py-2 rounded-lg shadow font-semibold flex items-center gap-2 hover:bg-taupe hover:text-white"
-                onClick={() => setMenuOpen((open) => !open)}
-              >
-                {user?.nombre || user?.username || 'Usuario'}
-                <svg width="16" height="16" fill="currentColor" className="ml-1"><path d="M4 6l4 4 4-4"/></svg>
-              </button>
-              {menuOpen && (
-                <div ref={menuRef} className="absolute right-0 mt-2 w-40 bg-white text-indigo rounded-lg shadow-lg border border-secondary z-10">
-                  <button
-                    className="w-full text-left px-4 py-2 hover:bg-taupe hover:text-white text-indigo rounded-lg"
-                    onClick={handleLogout}
-                  >Cerrar sesión</button>
-                </div>
-              )}
-            </div>
-          </header>
-          <main className="flex-1 p-8 bg-background ">
-            <div className="border border-secondary rounded-lg p-6 min-h-[70vh] bg-white shadow">
-              {children}
-            </div>
-          </main>
+    // 1. Contenedor principal
+    // --- CORREGIDO: class -> className ---
+    <div
+      className="min-h-screen flex flex-col bg-base-200"
+      style={{ width: "1200px", margin: "auto" }}
+    >
+      {/* 2. El Navbar Superior */}
+      {/* --- CORREGIDO: class -> className --- */}
+      <header className="navbar bg-base-100 shadow-md sticky top-0 z-30">
+        {/* --- Lado Izquierdo --- */}
+        {/* --- CORREGIDO: class -> className --- */}
+        <div className="navbar-start">
+          {/* --- CORREGIDO: class -> className --- */}
+          <Link
+            to="/dashboard"
+            className="btn btn-ghost normal-case text-xl hidden sm:flex"
+          >
+            {/* --- CORREGIDO: class -> className --- */}
+            <img src={logo} alt="Logo" className="w-8 h-8" />
+            <span className="ml-2">Gestión Comunidades</span>
+          </Link>
         </div>
-      </div>
+
+        {/* --- Centro: Menú Desktop --- */}
+        {/* --- CORREGIDO: class -> className --- */}
+        <div className="navbar-center hidden lg:flex">
+          {/* --- CORREGIDO: class -> className --- */}
+          {/* También quité 'btn-primary' de aquí, no tiene sentido en un <ul> */}
+          <ul className="menu menu-horizontal px-1">
+            <NavLink to="/dashboard">Dashboard</NavLink>
+            <NavLink to="/proyectos">Proyectos</NavLink>
+            <NavLink to="/rendiciones">Rendiciones</NavLink>
+            <NavLink to="/periodos">Periodos</NavLink>
+            <NavLink to="/socios">Socios</NavLink>
+          </ul>
+        </div>
+
+ 
+        {/* --- Lado Derecho: Dropdown de Usuario --- */}
+        {/* --- CORREGIDO: class -> className --- */}
+        <div className="navbar-end">
+          {/* --- CORREGIDO: class -> className --- */}
+          <div className="dropdown dropdown-end">
+            <label
+              tabIndex={0}
+              // --- CORREGIDO: class -> className ---
+              className="btn btn-ghost"
+            >
+              {/* --- CORREGIDO: class -> className --- */}
+              <div className="flex flex-col items-end">
+                {/* --- CORREGIDO: class -> className --- */}
+                <span className="font-medium">
+                  {user?.nombre || user?.username || "Usuario"}
+                </span>
+                <span className="text-xs text-base-content/70">
+                  {userComunidad}
+                </span>
+              </div>
+              <svg width="16" height="16" fill="currentColor" className="ml-1">
+                <path d="M4 6l4 4 4-4" />
+              </svg>
+            </label>
+
+            <ul
+              tabIndex={0}
+              // (Esta ya estaba bien)
+              className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+            >
+              <li>
+                <a onClick={handleLogout}>
+                  <LogoutIcon />
+                  Cerrar sesión
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </header>
+
+      {/* 3. Contenido Principal */}
+      {/* (Esta ya estaba bien) */}
+      <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="bg-base-100 rounded-box shadow p-4 sm:p-6 min-h-[80vh]">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

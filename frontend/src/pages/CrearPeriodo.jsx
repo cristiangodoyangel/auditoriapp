@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-// Tu función de formateo de fecha está perfecta, no necesita cambios
+
 function formatFechaCL(fecha) {
   if (!fecha) return '';
   const d = new Date(fecha);
@@ -20,7 +20,7 @@ export default function CrearPeriodo({ onPeriodoCreado }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Tu lógica de handleSubmit está perfecta, no necesita cambios
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -54,21 +54,19 @@ export default function CrearPeriodo({ onPeriodoCreado }) {
   };
 
   return (
-    // --- CAMBIO DAISYUI ---
-    // Quitamos el div exterior. El <Layout> ya nos da el contenedor.
-    // Usamos max-w-lg y mx-auto para centrar el formulario.
+
     <form onSubmit={handleSubmit} className="w-full max-w-lg mx-auto">
       
-      {/* --- CAMBIO DAISYUI: Títulos con colores del tema --- */}
+
       <h2 className="text-2xl font-bold mb-2 text-primary">Crear Nuevo Periodo</h2>
       <p className="mb-6 text-base-content/70">Ingresa los datos del periodo y el monto asignado por Albemarle</p>
 
-      {/* --- CAMBIO DAISYUI: form-control y label --- */}
+
       <div className="form-control w-full mb-4">
         <label className="label">
           <span className="label-text">Nombre del Periodo</span>
         </label>
-        {/* --- CAMBIO DAISYUI: input input-bordered --- */}
+
         <input 
           type="text" 
           className="input input-bordered w-full" 
@@ -78,7 +76,7 @@ export default function CrearPeriodo({ onPeriodoCreado }) {
         />
       </div>
 
-      {/* --- CAMBIO DAISYUI: Fila de Fechas (flex + form-control) --- */}
+
       <div className="flex flex-col sm:flex-row gap-4 mb-4">
         <div className="form-control flex-1">
           <label className="label">
@@ -106,7 +104,7 @@ export default function CrearPeriodo({ onPeriodoCreado }) {
         </div>
       </div>
 
-      {/* --- CAMBIO DAISYUI: input-group para el $ --- */}
+
       <div className="form-control w-full mb-4">
         <label className="label">
           <span className="label-text">Monto Disponible del Periodo Anterior</span>
@@ -125,7 +123,7 @@ export default function CrearPeriodo({ onPeriodoCreado }) {
         </div>
       </div>
 
-      {/* --- CAMBIO DAISYUI: input-group para el $ --- */}
+
       <div className="form-control w-full mb-4">
         <label className="label">
           <span className="label-text">Monto Asignado por Albemarle</span>
@@ -144,7 +142,7 @@ export default function CrearPeriodo({ onPeriodoCreado }) {
         </div>
       </div>
 
-      {/* --- CAMBIO DAISYUI: alert para el error --- */}
+
       {error && (
         <div className="alert alert-error shadow-sm mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -152,7 +150,7 @@ export default function CrearPeriodo({ onPeriodoCreado }) {
         </div>
       )}
 
-      {/* --- CAMBIO DAISYUI: Botones con 'btn' --- */}
+
       <div className="flex justify-end gap-2 mt-6">
         <button 
           type="button" 

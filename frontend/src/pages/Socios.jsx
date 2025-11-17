@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import TablaGenerica from '../components/TablaGenerica';
 
-// --- 1. AQUÍ ESTÁN TUS 30 SOCIOS DE PRUEBA ---
 const mockSocios = [];
 for (let i = 1; i <= 30; i++) {
   mockSocios.push({
@@ -11,11 +10,10 @@ for (let i = 1; i <= 30; i++) {
     rut: `12.345.${i < 10 ? '00' : '0'}${i}-K`,
     direccion: `Calle Ficticia #${i}, Calama`,
     telefono: `+56 9 1234 56${i < 10 ? '0' : ''}${i}`,
-    activo: i % 4 !== 0, // <-- 75% activos, 25% inactivos
-    comunidad: 1 // (ID de comunidad de prueba)
+    activo: i % 4 !== 0,
+    comunidad: 1 
   });
 }
-// ---------------------------------------------
 
 export default function Socios() {
   let isAdmin = false;
@@ -30,36 +28,13 @@ export default function Socios() {
     }
   } catch {}
 
-  // --- 2. PRE-CARGAMOS EL ESTADO CON LOS 30 SOCIOS ---
   const [socios, setSocios] = useState(mockSocios);
   const [loading, setLoading] = useState(true);
-  // ----------------------------------------------------
-  
   const [formLoading, setFormLoading] = useState(false);
 
-  // --- 3. COMENTAMOS EL useEffect PARA QUE NO BORRE LOS DATOS MOCK ---
-  React.useEffect(() => {
-    // Simulamos que la carga terminó
+  useEffect(() => {
     setLoading(false);
-    
-    /* // --- DESCOMENTA ESTO PARA CONECTAR AL API REAL ---
-    const token = localStorage.getItem('access');
-    setLoading(true); 
-    fetch('http://localhost:8000/api/comunidades/socios/', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => {
-        setSocios(Array.isArray(data) ? data : data.results || []);
-        setLoading(false); 
-      })
-      .catch(() => {
-        setSocios([]);
-        setLoading(false); 
-      });
-    */
   }, []);
-  // -----------------------------------------------------------------
 
   const [editando, setEditando] = useState(null);
   const [nuevoSocio, setNuevoSocio] = useState({nombre:'',apellido:'',rut:'',direccion:'',telefono:'',activo:true});
@@ -69,10 +44,8 @@ export default function Socios() {
     setNuevoSocio({nombre:'',apellido:'',rut:'',direccion:'',telefono:'',activo:true, comunidad: comunidadId});
   }
 
-  // (Simulamos el guardado localmente para que funcione con los datos mock)
   function handleGuardarNuevo() {
     setFormLoading(true);
-    // Simulamos un guardado
     setTimeout(() => {
       const socioGuardado = { ...nuevoSocio, id: socios.length + 1 };
       setSocios([...socios, socioGuardado]);
@@ -103,7 +76,7 @@ export default function Socios() {
   return (
     <div className="space-y-6">
       
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 p-4 rounded-box bg-base-200 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-box bg-base-200 shadow-sm">
         <div>
           <h2 className="text-2xl font-bold text-primary">Gestión de Socios</h2>
           <p className="text-base-content/70">
@@ -117,25 +90,25 @@ export default function Socios() {
         )}
       </div>
 
-      <div className="stats stats-vertical lg:stats-horizontal shadow w-full">
-        <div className="stat">
+      <div className="stats stats-vertical lg:stats-horizontal shadow w-full bg-base-100">
+        <div className="stat place-items-center">
           <div className="stat-title">Socios Totales</div>
-          <div className="stat-value text-primary">{socios.length}</div>
+          <div className="stat-value">{socios.length}</div>
         </div>
-        <div className="stat">
-          <div className="stat-title ">Socios Activos</div>
-          <div className="stat-value text-primary">{sociosActivos}</div>
+        <div className="stat place-items-center">
+          <div className="stat-title">Socios Activos</div>
+          <div className="stat-value text-success">{sociosActivos}</div>
         </div>
-        <div className="stat">
+        <div className="stat place-items-center">
           <div className="stat-title">Socios Inactivos</div>
-          <div className="stat-value text-warning">{sociosInactivos}</div>
+          <div className="stat-value text-base-content/70">{sociosInactivos}</div>
         </div>
       </div>
 
       {(editando !== null) && (
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
-            <h3 className="card-title">{editando === 'nuevo' ? 'Agregar Socio' : 'Editar Socio'}</h3>
+            <h3 className="card-title text-primary">{editando === 'nuevo' ? 'Agregar Socio' : 'Editar Socio'}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-control">
                 <label className="label"><span className="label-text">Nombre</span></label>
@@ -159,14 +132,14 @@ export default function Socios() {
               </div>
               <div className="form-control md:col-span-2">
                 <label className="label cursor-pointer justify-start gap-4">
-                  <input type="checkbox" className="checkbox" checked={nuevoSocio.activo} onChange={e=>setNuevoSocio({...nuevoSocio,activo:e.target.checked})} />
+                  <input type="checkbox" className="checkbox checkbox-primary" checked={nuevoSocio.activo} onChange={e=>setNuevoSocio({...nuevoSocio,activo:e.target.checked})} />
                   <span className="label-text">Socio Activo</span> 
                 </label>
               </div>
             </div>
-            <div className="card-actions justify-end gap-2">
+            <div className="card-actions justify-end gap-2 mt-4">
               {editando!=='nuevo' && (
-                <button className="btn btn-error" onClick={()=>handleEliminar(editando)}>Eliminar</button>
+                <button className="btn btn-error text-white" onClick={()=>handleEliminar(editando)}>Eliminar</button>
               )}
               <button className="btn btn-ghost" onClick={()=>setEditando(null)}>Cancelar</button>
               <button className="btn btn-primary" onClick={editando==='nuevo'?handleGuardarNuevo:handleGuardarEdicion} disabled={formLoading}>
@@ -200,11 +173,12 @@ export default function Socios() {
                 : <div className="badge badge-ghost">No</div>;
             }
             if (col.key === 'nombre' && isAdmin) {
-              return <span className="link link-primary font-bold" onClick={()=>handleEditar(row)}>{row.nombre}</span>;
+              return <span className="link link-primary font-bold hover:text-primary-focus transition-colors" onClick={()=>handleEditar(row)}>{row.nombre}</span>;
             }
             return row[col.key] || '';
           }}
           emptyText="No hay socios registrados"
+          rowsPerPage={10}
         />
       )}
     </div>

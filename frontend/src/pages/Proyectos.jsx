@@ -16,9 +16,7 @@ function formatFechaCL(fecha) {
 
 export default function Proyectos() {
   const [proyectos, setProyectos] = useState([]);
-  // --- CORRECCIÓN 1: Añadir estado para las rendiciones ---
-  const [rendiciones, setRendiciones] = useState([]);
-  // ----------------------------------------------------
+  const [rendiciones, setRendiciones] = useState([]); // <--- FALTABA ESTE ESTADO
   const [loading, setLoading] = useState(true);
   const [etapa, setEtapa] = useState(0);
   const [nuevoProyecto, setNuevoProyecto] = useState({
@@ -43,8 +41,7 @@ export default function Proyectos() {
   } catch (err) { /* Silencio */ }
 
   const fetchProyectos = useCallback(async () => {
-    // ... tu fetchProyectos ...
-     const token = localStorage.getItem("access");
+    const token = localStorage.getItem("access");
     setLoading(true);
     try {
       const res = await fetch("http://localhost:8000/api/proyectos/", {
@@ -64,7 +61,6 @@ export default function Proyectos() {
     setLoading(false);
   }, [setProyectos, setLoading]);
 
-  // --- CORRECCIÓN 2: Crear un fetch para Rendiciones ---
   const fetchRendiciones = useCallback(async () => {
     const token = localStorage.getItem("access");
     try {
@@ -77,14 +73,12 @@ export default function Proyectos() {
       setRendiciones([]);
     }
   }, [setRendiciones]);
-  // ----------------------------------------------------
 
   useEffect(() => {
     const token = localStorage.getItem("access");
 
     async function fetchComunidad() {
-      // ... tu lógica de fetchComunidad ...
-       let comunidadFromToken = null;
+      let comunidadFromToken = null;
       try {
         const user = JSON.parse(localStorage.getItem("user"));
         if (user && user.comunidad && user.comunidad.id) {
@@ -130,8 +124,7 @@ export default function Proyectos() {
     }
 
     async function fetchPeriodoVigente(idComunidad) {
-      // ... tu lógica de fetchPeriodoVigente ...
-       if (!idComunidad) {
+      if (!idComunidad) {
         setPeriodoVigente(null);
         return;
       }
@@ -174,14 +167,13 @@ export default function Proyectos() {
       const idComunidad = await fetchComunidad();
       await fetchPeriodoVigente(idComunidad);
       await fetchProyectos();
-      await fetchRendiciones(); // <-- Llamar al nuevo fetch
+      await fetchRendiciones();
     }
 
     cargarDatosIniciales();
-  }, [fetchProyectos, fetchRendiciones]); // <-- Añadir fetchRendiciones
+  }, [fetchProyectos, fetchRendiciones]);
 
-  // ... (toda tu lógica de handleInputChange, handleFileChange, handleCrearProyecto) ...
-    const handleInputChange = (e) => {
+  const handleInputChange = (e) => {
     setNuevoProyecto({ ...nuevoProyecto, [e.target.name]: e.target.value });
   };
   const handleFileChange = (e) => {
@@ -193,10 +185,10 @@ export default function Proyectos() {
       },
     });
   };
-  
+
   const handleCrearProyecto = async (e) => {
     e.preventDefault();
-    setFormLoading(true); // Activar loading del formulario
+    setFormLoading(true);
     const token = localStorage.getItem("access");
     if (!comunidadId) {
       alert("No se pudo obtener la comunidad del usuario.");
@@ -208,8 +200,7 @@ export default function Proyectos() {
       setFormLoading(false);
       return;
     }
-    
-    // (Tu lógica de FormData está perfecta)
+
     const presupuestoFormateado = Number(
       nuevoProyecto.presupuesto_total
     ).toFixed(2);
@@ -220,8 +211,8 @@ export default function Proyectos() {
     formData.append("fecha_inicio", nuevoProyecto.fecha_inicio);
     formData.append("fecha_fin", nuevoProyecto.fecha_fin);
     formData.append("presupuesto_total", presupuestoFormateado);
-    formData.append("estado", "Borrador"); // Estado por defecto
-    formData.append("estado_rendicion", "Pendiente"); // Estado por defecto
+    formData.append("estado", "Borrador");
+    formData.append("estado_rendicion", "Pendiente");
     formData.append("comunidad", comunidadId);
     if (nuevoProyecto.documentos.asamblea) {
       formData.append("acta", nuevoProyecto.documentos.asamblea);
@@ -241,9 +232,9 @@ export default function Proyectos() {
       });
       const text = await res.text();
       if (res.ok) {
-        setEtapa(0); // Ocultar formulario
+        setEtapa(0);
         fetchProyectos();
-        // Limpiar formulario
+
         setNuevoProyecto({
           nombre: "", descripcion: "", fecha_inicio: "", fecha_fin: "",
           presupuesto_total: "",
@@ -255,29 +246,27 @@ export default function Proyectos() {
     } catch (err) {
       alert("Error de red al crear el proyecto: " + err.message);
     }
-    setFormLoading(false); // Desactivar loading del formulario
+    setFormLoading(false);
   };
-
 
   const columns = [
     { key: "nombre", label: "Proyecto" },
     { key: "fechas", label: "Fechas" },
     { key: "presupuesto", label: "Presupuesto" },
     { key: "rendido", label: "Rendido" },
-    { key: "estado", label: "Estado" },
+    { key: "estado_rendicion", label: "Estado" },
     { key: "documentos", label: "Documentos" },
   ];
 
-  // --- CORRECCIÓN 3: Mapeo de datos para TablaGenerica ---
   const dataParaTabla = proyectos.map((p) => {
     const presupuesto = p.presupuesto_total || 0;
-    
-    // --- ¡AQUÍ ESTÁ LA LÓGICA DE DASHBOARD.JSX! ---
+
     const rendiciones_del_proyecto = rendiciones.filter(r => r.proyecto === p.id);
     const montoRendido = rendiciones_del_proyecto.reduce((acc, r) => acc + (parseFloat(r.monto_rendido) || 0), 0);
-    // ------------------------------------------------
-    
+
     const faltaPorRendir = Number(presupuesto) - Number(montoRendido);
+    
+    const porcentaje = presupuesto > 0 ? Math.round((montoRendido / presupuesto) * 100) : 0;
 
     return {
       nombre: (
@@ -298,16 +287,16 @@ export default function Proyectos() {
           <div className="text-xs opacity-70">Faltan {formatMonto(faltaPorRendir)}</div>
         </div>
       ),
-      rendido: ( // <-- Ahora 'montoRendido' es el valor calculado
+      rendido: (
         <div>
           <div>{formatMonto(montoRendido)}</div>
           <progress className="progress progress-primary w-20" value={montoRendido} max={presupuesto}></progress>
         </div>
       ),
-      estado: (
+      estado_rendicion: (
         <div className={`badge ${
-            p.estado === 'Aprobado' || p.estado === 'Validado' ? 'badge-success' : 
-            p.estado === 'Rechazado' ? 'badge-error' : 'badge-warning'
+            p.estado_rendicion === 'Aprobado' || p.estado_rendicion === 'Validado' ? 'badge-success' :
+            p.estado_rendicion === 'Rechazado' ? 'badge-error' : 'badge-warning'
           } badge-outline`}
         >
           {p.estado_rendicion}
@@ -335,10 +324,7 @@ export default function Proyectos() {
     };
   });
 
-
   return (
-    // --- TU JSX (Modal, Formulario, TablaGenerica) ESTÁ PERFECTO ---
-    // --- NO SE MODIFICA ---
     <div className="space-y-6">
       
       <dialog className={`modal ${showNoPeriodoModal ? "modal-open" : ""}`}>
@@ -360,16 +346,16 @@ export default function Proyectos() {
         </div>
       </dialog>
 
-<div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 p-4 rounded-box bg-base-200 shadow-sm">
-  <div>
-    <h2 className="text-2xl font-bold text-primary">Gestión de Proyectos</h2>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-box bg-base-200 shadow-sm">
+        <div>
+          <h2 className="text-2xl font-bold text-primary">Gestión de Proyectos</h2>
           <p className="text-base-content/70">
             Creación, seguimiento y rendición de proyectos comunitarios
           </p>
         </div>
         <button
           className="btn btn-primary"
-          onClick={() => setEtapa(etapa === 1 ? 0 : 1)} // <-- Toggle para abrir/cerrar
+          onClick={() => setEtapa(etapa === 1 ? 0 : 1)}
         >
           {etapa === 1 ? "Cerrar Formulario" : "Crear Proyecto"}
         </button>
@@ -427,7 +413,7 @@ export default function Proyectos() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 flex flex-col">
                 <div className="form-control">
                   <label className="label"><span className="label-text">Acta de Asamblea</span></label>
                   <input

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TablaGenerica from '../components/TablaGenerica';
-
-// --- Funciones Helper (Lógica) ---
+import { apiFetch } from '../utils/api';
 
 function formatFechaCL(fecha) {
   if (!fecha) return '';
@@ -37,7 +36,6 @@ function formatMonto(monto) {
   return '$' + Number(monto).toLocaleString('es-CL', { maximumFractionDigits: 0 });
 }
 
-// --- Componente Principal ---
 export default function Periodos() {
   const [periodos, setPeriodos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,17 +45,12 @@ export default function Periodos() {
 
   const navigate = useNavigate();
 
-  // (Tu useEffect de fetch está perfecto)
   useEffect(() => {
-    // ... tu lógica de fetch ...
-     const token = localStorage.getItem('access');
     async function fetchPeriodos() {
       setLoading(true);
       try {
-        const res = await fetch('http://localhost:8000/api/periodos/periodos/', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.ok ? await res.json() : [];
+        const res = await apiFetch('/periodos/periodos/');
+        const data = res.ok ? await res.json() : [];
         setPeriodos(Array.isArray(data) ? data : data.results || []);
       } catch {
         setPeriodos([]);
@@ -67,7 +60,6 @@ export default function Periodos() {
     fetchPeriodos();
   }, []);
 
-  // (Tu lógica de datos está perfecta)
   const periodoActual = periodos.find(esPeriodoActual);
   const periodosTabla = ordenarPorFecha(periodos, asc);
 
@@ -79,43 +71,47 @@ export default function Periodos() {
         </div>
       ) : (
         <>
-          {/* --- CAMBIO DAISYUI: Reemplazamos Card por Stat --- */}
-          {periodoActual && (
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-box bg-base-200 shadow-sm">
-              <div className="stat text-center">
-                <div className="stat-title">
+          {periodoActual ? (
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6 rounded-box bg-base-200 shadow-sm">
+              <div className="stat text-center md:text-left p-0 place-items-center md:place-items-start">
+                <div className="stat-title text-lg font-bold">
                   {periodoActual.nombre} (Actual)
                 </div>
-                <div className="stat-value text-primary">
+                <div className="stat-value text-primary text-3xl my-1">
                   {formatMonto(periodoActual.monto_asignado)}
                 </div>
-                <div className="stat-desc">{`Del ${formatFechaCL(
+                <div className="stat-desc text-sm">{`Del ${formatFechaCL(
                   periodoActual.fecha_inicio
                 )} al ${formatFechaCL(periodoActual.fecha_fin)}`}</div>
               </div>
 
               <button
-                className="btn btn-primary md:items-center"
+                className="btn btn-primary w-full md:w-auto"
                 onClick={() => navigate("/crear-periodo")}
               >
                 Crear Nuevo Periodo
               </button>
             </div>
+          ) : (
+            <div className="flex justify-end">
+               <button
+                className="btn btn-primary"
+                onClick={() => navigate("/crear-periodo")}
+              >
+                Crear Primer Periodo
+              </button>
+            </div>
           )}
-          {/* --- Fin del cambio --- */}
 
-          {/* --- Fila de Botones (Sin cambios) --- */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
             <button
-              className="btn btn-outline"
+              className="btn btn-outline btn-sm"
               onClick={() => setAsc((a) => !a)}
             >
               Ordenar por fecha {asc ? "↑" : "↓"}
             </button>
           </div>
-          {/* ------------------------------------ */}
 
-          {/* --- TablaGenerica (Sin cambios) --- */}
           <TablaGenerica
             columns={[
               { key: "nombre", label: "Nombre" },

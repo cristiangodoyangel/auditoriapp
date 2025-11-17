@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import TablaGenerica from '../components/TablaGenerica'; // <-- ¡Ahora sí la usamos!
+import TablaGenerica from '../components/TablaGenerica';
+import { apiFetch } from '../utils/api';
 
-// --- (Funciones de ayuda para formato) ---
 function formatFechaCL(fecha) {
   if (!fecha || typeof fecha !== 'string' || !fecha.includes('-')) return '';
   const parts = fecha.split('T')[0].split('-');
@@ -14,7 +14,6 @@ function formatMonto(monto) {
   if (monto === undefined || monto === null || isNaN(monto)) return '$0';
   return '$' + Number(monto).toLocaleString('es-CL', { maximumFractionDigits: 0 });
 }
-// ------------------------------------------
 
 export default function Rendiciones() {
   const [rendiciones, setRendiciones] = useState([]);
@@ -34,29 +33,21 @@ export default function Rendiciones() {
   const [showNoPeriodoModal, setShowNoPeriodoModal] = useState(false);
   const navigate = useNavigate();
 
-  // --- (Toda la lógica de fetch y handleSubmit está perfecta) ---
-    const fetchRendiciones = useCallback(async () => {
-    // ... tu fetchRendiciones ...
-    const token = localStorage.getItem('access');
+  const fetchRendiciones = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/api/rendiciones/', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await apiFetch('/rendiciones/');
       const data = res.ok ? await res.json() : [];
       setRendiciones(Array.isArray(data) ? data : data.results || []);
     } catch {
       setRendiciones([]);
     }
     setLoading(false);
-  }, [setLoading, setRendiciones]);
+  }, []);
   
   useEffect(() => {
-    const token = localStorage.getItem('access');
-
     async function fetchComunidad() {
-      // ... tu fetchComunidad ...
-       let comunidadFromToken = null;
+      let comunidadFromToken = null;
       try {
         const user = JSON.parse(localStorage.getItem('user'));
         if (user && user.comunidad && user.comunidad.id) {
@@ -65,9 +56,7 @@ export default function Rendiciones() {
       } catch (err) { /* Silencio */ }
 
       try {
-        const res = await fetch("http://localhost:8000/api/auth/profile/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await apiFetch("/auth/profile/");
 
         if (res.ok) {
           const data = await res.json();
@@ -80,7 +69,6 @@ export default function Rendiciones() {
             return id;
           }
         }
-        // Fallback
         if (comunidadFromToken) {
             setComunidadId(comunidadFromToken);
             return comunidadFromToken;
@@ -96,19 +84,13 @@ export default function Rendiciones() {
     }
     
     async function fetchPeriodoVigente(idComunidad) {
-      // ... tu fetchPeriodoVigente ...
       if (!idComunidad) {
         setPeriodoVigente(null);
         return;
       }
 
       try {
-        const res = await fetch(
-          "http://localhost:8000/api/periodos/periodos/",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await apiFetch("/periodos/periodos/");
 
         if (res.ok) {
           const data = await res.json();
@@ -125,32 +107,29 @@ export default function Rendiciones() {
             setPeriodoVigente(vigente);
           } else {
             setPeriodoVigente(null);
-            setShowNoPeriodoModal(true); // ¡MOSTRAR MODAL!
+            setShowNoPeriodoModal(true); 
           }
-        } else {
-          console.error("Error al obtener periodos:", res.status);
         }
       } catch (err) {
-        console.error("Error de red en fetchPeriodoVigente:", err);
         setPeriodoVigente(null);
       }
     }
     
-    async function fetchProyectos() {
-        // ... tu fetchProyectos ...
-        fetch('http://localhost:8000/api/proyectos/', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(res => res.ok ? res.json() : [])
-        .then(data => setProyectos(Array.isArray(data) ? data : data.results || []))
-        .catch(() => setProyectos([]));
+    async function fetchProyectosData() {
+        try {
+            const res = await apiFetch('/proyectos/');
+            const data = res.ok ? await res.json() : [];
+            setProyectos(Array.isArray(data) ? data : data.results || []);
+        } catch {
+            setProyectos([]);
+        }
     }
     
     async function cargarDatosIniciales() {
       const idComunidad = await fetchComunidad();
       await fetchPeriodoVigente(idComunidad); 
       await fetchRendiciones(); 
-      await fetchProyectos(); 
+      await fetchProyectosData(); 
     }
 
     cargarDatosIniciales();
@@ -166,16 +145,14 @@ export default function Rendiciones() {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormLoading(true); // <-- Activar loading
-    const token = localStorage.getItem('access');
+    setFormLoading(true); 
     
     if (!periodoVigente) {
         setShowNoPeriodoModal(true);
-        setFormLoading(false); // <-- Desactivar
+        setFormLoading(false); 
         return;
     }
 
-    // 1. Subir el documento PDF
     const docForm = new FormData();
     docForm.append('archivo', form.documento);
     docForm.append('nombre', form.documento.name);
@@ -184,9 +161,8 @@ export default function Rendiciones() {
 
     let docData;
     try {
-      const docRes = await fetch('http://localhost:8000/api/documentos/', {
+      const docRes = await apiFetch('/documentos/', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
         body: docForm
       });
       docData = await docRes.json();
@@ -195,13 +171,12 @@ export default function Rendiciones() {
       }
     } catch (err) {
       alert(err.message);
-      setFormLoading(false); // <-- Desactivar
+      setFormLoading(false); 
       return;
     }
     
     const documentoId = docData.id;
 
-    // 2. Crear la rendición
     const rendicionPayload = {
       proyecto: form.proyecto,
       monto_rendido: form.monto_rendido,
@@ -211,12 +186,8 @@ export default function Rendiciones() {
     };
 
     try {
-      const res = await fetch('http://localhost:8000/api/rendiciones/', {
+      const res = await apiFetch('/rendiciones/', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify(rendicionPayload)
       });
       
@@ -228,8 +199,8 @@ export default function Rendiciones() {
         } catch {
             alert('Error al guardar la rendición: ' + resText);
         }
-        setFormLoading(false); // <-- Desactivar
-        return; 
+        setFormLoading(false); 
+        return;
       }
 
       fetchRendiciones(); 
@@ -239,13 +210,9 @@ export default function Rendiciones() {
     } catch (err) {
       alert(err.message);
     }
-    setFormLoading(false); // <-- Desactivar
+    setFormLoading(false); 
   };
 
-  // --- FIN DE LA LÓGICA ---
-
-
-  // --- CORRECCIÓN: Definición de Columnas para TablaGenerica ---
   const columns = [
     { key: 'proyecto', label: 'Proyecto' },
     { key: 'descripcion', label: 'Descripción' },
@@ -254,7 +221,6 @@ export default function Rendiciones() {
     { key: 'documento', label: 'Documento' },
   ];
 
-  // --- CORRECCIÓN: Mapeo de Datos para TablaGenerica ---
   const dataParaTabla = rendiciones.map(r => ({
     proyecto: r.proyecto_nombre || '...',
     descripcion: r.descripcion,
@@ -284,7 +250,6 @@ export default function Rendiciones() {
   return (
     <div className="space-y-6">
       
-      {/* --- Modal "Sin Periodo" (Estilizado) --- */}
       <dialog className={`modal ${showNoPeriodoModal ? "modal-open" : ""}`}>
         <div className="modal-box">
           <h3 className="font-bold text-lg text-error">Atención</h3>
@@ -304,8 +269,7 @@ export default function Rendiciones() {
         </div>
       </dialog>
 
-      {/* --- Encabezado Estándar --- */}
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 p-4 rounded-box bg-base-200 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-box bg-base-200 shadow-sm">
         <div>
           <h2 className="text-2xl font-bold text-primary">Gestión de Rendiciones</h2>
           <p className="text-base-content/70">
@@ -317,7 +281,6 @@ export default function Rendiciones() {
         </button>
       </div>
 
-      {/* --- Modal Formulario "Crear Rendición" (Estilizado) --- */}
       <dialog className={`modal ${showForm ? "modal-open" : ""}`}>
         <div className="modal-box w-11/12 max-w-2xl">
           <h3 className="font-bold text-lg text-primary">Nueva Rendición</h3>
@@ -371,7 +334,6 @@ export default function Rendiciones() {
         </div>
       </dialog>
 
-      {/* --- CORRECCIÓN: Usando TablaGenerica --- */}
       {loading ? (
         <div className="text-center p-12">
           <span className="loading loading-lg loading-spinner text-primary"></span>
@@ -384,7 +346,6 @@ export default function Rendiciones() {
           rowsPerPage={8}
         />
       )}
-      {/* --- FIN DE LA CORRECCIÓN --- */}
     </div>
   );
 }

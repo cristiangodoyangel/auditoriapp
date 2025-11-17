@@ -10,7 +10,7 @@ class PeriodoProyectoAPITests(APITestCase):
         self.comunidad = Comunidad.objects.create(nombre="Comunidad Test")
 
     def test_crear_periodo_y_proyecto(self):
-        # Crear periodo
+        
         periodo = Periodo.objects.create(
             comunidad=self.comunidad,
             nombre="Periodo 2025",
@@ -22,7 +22,7 @@ class PeriodoProyectoAPITests(APITestCase):
         self.assertEqual(periodo.nombre, "Periodo 2025")
         self.assertEqual(periodo.comunidad, self.comunidad)
 
-        # Crear proyecto
+        
         proyecto = Proyecto.objects.create(
             comunidad=self.comunidad,
             periodo=periodo,

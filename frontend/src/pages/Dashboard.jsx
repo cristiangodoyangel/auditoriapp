@@ -1,18 +1,12 @@
 import React, { useEffect, useState } from 'react';
-// --- CAMBIO DAISYUI ---
-// Ya no necesitamos 'DashboardCard' ni 'DashboardStatCard'
-// import DashboardCard from '../components/DashboardCard';
 
 function formatMonto(monto) {
-  // --- CAMBIO DAISYUI ---
-  // Formateamos en $ y sin decimales
   if (monto === undefined || monto === null || isNaN(monto)) return '$0';
   return '$' + Number(monto).toLocaleString('es-CL', { maximumFractionDigits: 0 });
 }
 
 export default function Dashboard() {
   const [proyectos, setProyectos] = useState([]);
-  // (Omití el resto de 'useState' por brevedad, tu lógica de fetch está perfecta)
   const [rendiciones, setRendiciones] = useState([]);
   const [periodos, setPeriodos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +17,6 @@ export default function Dashboard() {
     isAuditor = user && (user.rol === 'auditor' || user.role === 'auditor');
   } catch {}
 
-  // Tu useEffect de fetch está perfecto, no necesita cambios
   useEffect(() => {
     const token = localStorage.getItem('access');
     setLoading(true);
@@ -37,7 +30,6 @@ export default function Dashboard() {
       setPeriodos(Array.isArray(pers) ? pers : pers.results || []);
       setLoading(false);
     }).catch(() => {
-      // (Manejo de error)
       setProyectos([]);
       setRendiciones([]);
       setPeriodos([]);
@@ -46,7 +38,6 @@ export default function Dashboard() {
   }, []);
 
   if (isAuditor) {
-    // ... tu lógica de auditor ...
     return (
       <div className="space-y-8">
         <h2>Vista de Auditor</h2>
@@ -54,7 +45,6 @@ export default function Dashboard() {
     );
   }
 
-  // --- LÓGICA DE CÁLCULO (sin cambios) ---
   let montoAsignado = 0;
   let montoRendido = 0;
   let montoPorRendir = 0;
@@ -69,76 +59,73 @@ export default function Dashboard() {
   const proyectosPendientes = proyectos.filter(p => p.estado === 'Borrador').length;
   const proyectosValidados = proyectos.filter(p => p.estado === 'Aprobado').length;
   const proyectosRechazados = proyectos.filter(p => p.estado === 'Rechazado').length;
-  // ------------------------------------
 
   return (
     <div className="space-y-6">
-         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 p-4 rounded-box bg-base-200 shadow-sm">
+      
+      <div className="flex flex-col items-center text-center md:flex-row md:text-left md:justify-between gap-4 p-6 rounded-box bg-base-200 shadow-sm">
         <div>
-          <h2 className="text-2xl font-bold text-primary">ESTADO ACTUAL DE SU COMUNIDAD</h2>
+          <h2 className="text-2xl font-bold text-primary">ESTADO ACTUAL</h2>
           <p className="text-base-content/70">
-            Resumen de montos y proyectos en gestión
+            Resumen de montos y proyectos
           </p>
         </div>
-        
       </div>
       
-      {/* --- CAMBIO DAISYUI: Sección Montos (Stats) --- */}
-      <div className="stats stats-vertical lg:stats-horizontal shadow w-full">
+      <div className="stats stats-vertical md:stats-horizontal shadow w-full bg-base-200">
         
-        <div className="stat">
-          <div className="stat-title">Monto Asignado</div>
-          <div className="stat-value text-primary">{loading ? "..." : formatMonto(montoAsignado)}</div>
-          <div className="stat-desc">Total de fondos del periodo</div>
+        <div className="stat place-items-center">
+          <div className="stat-title text-center">Monto Asignado</div>
+          <div className="stat-value text-primary text-3xl md:text-4xl">{loading ? "..." : formatMonto(montoAsignado)}</div>
+          <div className="stat-desc text-center">Total de fondos del periodo</div>
         </div>
         
-        <div className="stat">
-          <div className="stat-title">Monto Rendido</div>
-          <div className="stat-value text-primary">{loading ? "..." : formatMonto(montoRendido)}</div>
-          <div className="stat-desc">Total gastado y justificado</div>
+        <div className="stat place-items-center">
+          <div className="stat-title text-center">Monto Rendido</div>
+          <div className="stat-value text-primary text-3xl md:text-4xl">{loading ? "..." : formatMonto(montoRendido)}</div>
+          <div className="stat-desc text-center">Total gastado y justificado</div>
         </div>
         
-        <div className="stat">
-          <div className="stat-title">Monto por Rendir</div>
-          <div className="stat-value text-warning">{loading ? "..." : formatMonto(montoPorRendir)}</div>
-          <div className="stat-desc">Saldo restante</div>
-        </div>
-        
-      </div>
-      {/* ------------------------------------ */}
-
-      {/* --- CAMBIO DAISYUI: Sección Auditoría (Stats) --- */}
-      <div className="stats stats-vertical lg:stats-horizontal shadow w-full">
-        
-        <div className="stat">
-          <div className="stat-title">Proyectos Totales</div>
-          <div className="stat-value">{loading ? "..." : totalProyectos}</div>
-        </div>
-        
-        <div className="stat">
-          <div className="stat-title">Pendiente de Validación</div>
-          <div className="stat-value text-warning">{loading ? "..." : proyectosPendientes}</div>
-        </div>
-        
-        <div className="stat">
-          <div className="stat-title">Proyectos Validados</div>
-          <div className="stat-value text-primary">{loading ? "..." : proyectosValidados}</div>
-        </div>
-
-        <div className="stat">
-          <div className="stat-title">Proyectos Rechazados</div>
-          <div className="stat-value text-primary">{loading ? "..." : proyectosRechazados}</div>
+        <div className="stat place-items-center">
+          <div className="stat-title text-center">Monto por Rendir</div>
+          <div className="stat-value text-warning text-3xl md:text-4xl">{loading ? "..." : formatMonto(montoPorRendir)}</div>
+          <div className="stat-desc text-center">Saldo restante</div>
         </div>
         
       </div>
-      {/* ------------------------------------ */}
 
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        
+        <div className="stat bg-base-200 shadow rounded-box place-items-center p-4">
+          <div className="stat-title text-sm">Totales</div>
+          <div className="stat-value text-2xl">{loading ? "..." : totalProyectos}</div>
+          <div className="stat-desc text-xs">Proyectos</div>
+        </div>
+        
+        <div className="stat bg-base-200 shadow rounded-box place-items-center p-4">
+          <div className="stat-title text-sm text-warning">Pendientes</div>
+          <div className="stat-value text-warning text-2xl">{loading ? "..." : proyectosPendientes}</div>
+          <div className="stat-desc text-xs">Validación</div>
+        </div>
+        
+        <div className="stat bg-base-200 shadow rounded-box place-items-center p-4">
+          <div className="stat-title text-sm text-primary">Validados</div>
+          <div className="stat-value text-primary text-2xl">{loading ? "..." : proyectosValidados}</div>
+          <div className="stat-desc text-xs">Aprobados</div>
+        </div>
 
-     {/* --- CAMBIO DAISYUI: Sección Proyectos Recientes (Card) --- */}
+        <div className="stat bg-base-200 shadow rounded-box place-items-center p-4">
+          <div className="stat-title text-sm text-primary">Rechazados</div>
+          <div className="stat-value text-primary text-2xl">{loading ? "..." : proyectosRechazados}</div>
+          <div className="stat-desc text-xs">Corregir</div>
+        </div>
+        
+      </div>
+
       <div className="card bg-base-100 shadow">
-        <div className="card-body">
-          <h2 className="card-title">Proyectos Recientes</h2>
-          <p className="text-base-content/70 mb-4">Últimos proyectos en gestión</p>
+        <div className="card-body p-4 md:p-8">
+          <h2 className="card-title justify-center md:justify-start">Proyectos Recientes</h2>
+          <p className="text-base-content/70 mb-4 text-center md:text-left">Últimos proyectos en gestión</p>
 
           {loading ? (
             <div className="text-center p-4">Cargando...</div>
@@ -147,35 +134,39 @@ export default function Dashboard() {
               {proyectos.sort((a, b) => b.id - a.id).slice(0, 5).map((p) => {
                 
                 const presupuesto = p.presupuesto_total || 0;
-                
-                // --- Lógica de cálculo (sin cambios) ---
                 const rendiciones_del_proyecto = rendiciones.filter(r => r.proyecto === p.id);
                 const rendido = rendiciones_del_proyecto.reduce((acc, r) => acc + (parseFloat(r.monto_rendido) || 0), 0);
                 const porcentaje = presupuesto > 0 ? Math.round((rendido / presupuesto) * 100) : 0;
-                // ------------------------------------
 
                 return (
-                  // --- CAMBIO DAISYUI: Cada proyecto es un div simple ---
-                  <div key={p.id} className="p-4 rounded-lg bg-base-200 flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <div className="font-semibold">{p.nombre || 'Sin datos aún'}</div>
+                  <div key={p.id} className="p-4 rounded-lg bg-base-200 flex flex-col gap-3">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+                      <div className="font-semibold text-center sm:text-left">{p.nombre || 'Sin datos aún'}</div>
                       
-                      {/* --- CAMBIO DAISYUI: Badge --- */}
                       <div className={`badge ${
                         p.estado === 'Aprobado' ? 'badge-success' : 
                         p.estado === 'Rechazado' ? 'badge-primary' : 'badge-primary'
                       }`}>
-                        {p.estado === 'Borrador' ? 'Pendiente de validación' : p.estado}
+                        {p.estado === 'Borrador' ? 'Pendiente Val.' : p.estado}
                       </div>
                       
                     </div>
                     
-                    {/* --- CAMBIO DAISYUI: text-base-content/70 --- */}
-                    <div className="text-sm text-base-content/70">Presupuesto: {formatMonto(presupuesto)}</div>
-                    <div className="text-sm text-base-content/70">Rendido: {formatMonto(rendido)}</div>
+                    <div className="flex justify-between text-sm text-base-content/70">
+                      <span>Presupuesto:</span>
+                      <span>{formatMonto(presupuesto)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-base-content/70">
+                      <span>Rendido:</span>
+                      <span>{formatMonto(rendido)}</span>
+                    </div>
 
-                    {/* --- CAMBIO DAISYUI: Progress Bar --- */}
-                    <progress className="progress progress-primary w-full" value={porcentaje} max="100"></progress>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-100 mt-1">
+                        <div 
+                            className="bg-primary h-2.5 rounded-full transition-all duration-500" 
+                            style={{ width: `${Math.min(porcentaje, 100)}%` }}
+                        ></div>
+                    </div>
                     
                     <div className="text-right text-xs font-bold">{porcentaje}% Rendido</div>
                   </div>
@@ -187,7 +178,6 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-      {/* ------------------------------------ */}
     </div>
   );
 }

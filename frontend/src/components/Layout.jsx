@@ -137,16 +137,16 @@ export default function Layout({ children }) {
       </header>
 
       {/* 3. Contenido Principal (con container responsive) */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto">
-        <div className="bg-base-100 rounded-box shadow p-4 sm:p-6 min-h-[80vh]">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto shadow-md ">
+        <div className="bg-white rounded-box shadow p-4 sm:p-6 min-h-[80vh]">
           {children}
         </div>
       </main>
 
       {/* 4. Footer (con container responsive) */}
-      <footer className="footer sm:footer-horizontal footer-center bg-base-300 text-base-content p-4 w-full max-w-7xl mx-auto rounded-t-box">
+      <footer className="footer sm:footer-horizontal footer-center bg-base-100 shadow-md  text-base-content p-4 w-full max-w-7xl mx-auto">
         <aside>
-          <p>Desarrollado por <a href="https://www.weblogica.cl" target="_blank" rel="noopener noreferrer" className="link link-hover">www.weblogica.cl</a></p>
+          <p>Desarrollado por <a class="text-secondary font-bold" href="https://www.weblogica.cl" target="_blank" rel="noopener noreferrer" className="link link-hover">www.weblogica.cl</a></p>
         </aside>
       </footer>
     </div>

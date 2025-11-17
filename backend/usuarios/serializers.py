@@ -7,7 +7,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
         
-        # Agregar información adicional al token
         data['user'] = {
             'id': str(self.user.id),
             'username': self.user.username,
@@ -36,7 +35,6 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def get_fondos_recibidos(self, obj):
-        # Aquí puedes poner la lógica real, por ahora retorna 0
         return 0
 
     def get_fondos_ejecutados(self, obj):

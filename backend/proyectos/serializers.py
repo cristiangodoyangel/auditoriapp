@@ -1,23 +1,23 @@
-# proyectos/serializers.py
+
 from rest_framework import serializers
 from .models import Proyecto
 
 class ProyectoSerializer(serializers.ModelSerializer):
-    # --- AÑADE ESTAS LÍNEAS ---
+   
     acta_url = serializers.SerializerMethodField()
     cotizaciones_url = serializers.SerializerMethodField()
     elegido_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Proyecto
-        fields = '__all__' # '__all__' incluirá 'acta', 'cotizaciones', 'elegido'
+        fields = '__all__' 
         extra_kwargs = {
             'acta': {'required': False},
             'cotizaciones': {'required': False},
             'elegido': {'required': False},
         }
 
-    # --- AÑADE ESTAS FUNCIONES ---
+
     def _get_file_url(self, obj, field_name):
         request = self.context.get('request')
         field = getattr(obj, field_name)

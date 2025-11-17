@@ -2,7 +2,7 @@ import os
 import django
 import sys
 
-# Agregar el directorio del proyecto al path
+
 sys.path.append('/backend')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'auditoriapp.settings')
 django.setup()
@@ -12,7 +12,7 @@ from usuarios.models import CustomUser
 from proyectos.models import Periodo, Proyecto, Socio
 from datetime import date
 
-# Crear comunidades
+
 print("Creando comunidades...")
 comunidades = [
     {"nombre": "Comunidad Lickanantay Norte", "ciudad": "Calama", "rut": "12345678-9", "direccion": "Calle Principal 123"},
@@ -29,7 +29,7 @@ for com_data in comunidades:
     comunidades_obj.append(comunidad)
     print(f"✓ {'Creada' if created else 'Existe'}: {comunidad.nombre}")
 
-# Crear usuarios
+
 print("\nCreando usuarios...")
 usuarios = [
     {
@@ -76,20 +76,20 @@ for user_data in usuarios:
         user.save()
     print(f"✓ {'Creado' if created else 'Existe'}: {user.username} - {user.rol}")
 
-# Crear periodos
+
 print("\nCreando periodos...")
-for comunidad in comunidades_obj[:2]:  # Solo para las primeras 2 comunidades
+for comunidad in comunidades_obj[:2]: 
     periodo, created = Periodo.objects.get_or_create(
         comunidad=comunidad,
         año=2025,
         defaults={
-            "monto_asignado": 50000000,  # 50 millones
-            "saldo_anterior": 5000000    # 5 millones de saldo anterior
+            "monto_asignado": 50000000, 
+            "saldo_anterior": 5000000    
         }
     )
     print(f"✓ {'Creado' if created else 'Existe'}: Periodo {periodo.año} - {comunidad.nombre}")
 
-# Crear algunos socios
+
 print("\nCreando socios...")
 socios_data = [
     {"nombre_completo": "Ana García López", "rut": "12345678-9", "telefono": "+56912345678"},
@@ -98,7 +98,7 @@ socios_data = [
 ]
 
 for i, socio_data in enumerate(socios_data):
-    comunidad = comunidades_obj[i % 2]  # Alternar entre las primeras 2 comunidades
+    comunidad = comunidades_obj[i % 2] 
     socio, created = Socio.objects.get_or_create(
         rut=socio_data["rut"],
         defaults={
@@ -110,7 +110,7 @@ for i, socio_data in enumerate(socios_data):
     )
     print(f"✓ {'Creado' if created else 'Existe'}: {socio.nombre_completo} - {comunidad.nombre}")
 
-# Crear proyectos de ejemplo
+
 print("\nCreando proyectos...")
 periodos = Periodo.objects.all()
 for i, periodo in enumerate(periodos):
@@ -120,7 +120,7 @@ for i, periodo in enumerate(periodos):
             "comunidad": periodo.comunidad,
             "periodo": periodo,
             "estado": "Borrador",
-            "presupuesto_asignado": 10000000,  # 10 millones
+            "presupuesto_asignado": 10000000,  
             "fecha_inicio": date(2025, 2, 1),
             "fecha_fin": date(2025, 12, 31),
             "descripcion": f"Proyecto de mejoramiento de infraestructura para la {periodo.comunidad.nombre}"

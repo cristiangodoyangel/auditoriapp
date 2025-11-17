@@ -2,14 +2,14 @@ import os
 import django
 import sys
 
-# Configurar Django
+
 sys.path.append('/backend')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'auditoriapp.settings')
 django.setup()
 
 from usuarios.models import CustomUser
 
-# Crear el usuario admin con las credenciales prometidas
+
 print("Creando usuario admin...")
 user, created = CustomUser.objects.get_or_create(
     username="admin",
@@ -21,7 +21,7 @@ user, created = CustomUser.objects.get_or_create(
     }
 )
 
-if created or True:  # Siempre actualizar la contraseña
+if created or True:  
     user.set_password("admin123")
     user.save()
     print(f"✓ Usuario 'admin' {'creado' if created else 'actualizado'} con contraseña 'admin123'")

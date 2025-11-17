@@ -11,16 +11,16 @@ from periodos.models import Periodo
 @permission_classes([IsAuthenticated])
 def inicio_admin_comunidad(request):
     user = request.user
-    # Validar si es admin de la comunidad
+
     if user.rol != 'admin' or not user.comunidad:
         return Response({'error': 'No tienes permisos de administrador de comunidad.'}, status=status.HTTP_403_FORBIDDEN)
 
     periodo = Periodo.objects.periodo_actual(user.comunidad)
     if periodo:
-        # Hay periodo activo, redireccionar a dashboard
+
         return Response({'redirect': 'dashboard', 'periodo_id': periodo.id})
     else:
-        # No hay periodo activo, redireccionar a crear periodo
+
         return Response({'redirect': 'crear_periodo'})
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -69,14 +69,14 @@ def profile_view(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_user_view(request):
-    # Solo admins pueden crear usuarios
+
     if request.user.rol not in ['Admin Consejo', 'Admin Comunidad']:
         return Response({'error': 'No tienes permisos para crear usuarios'}, 
                        status=status.HTTP_403_FORBIDDEN)
     
     serializer = CreateUserSerializer(data=request.data)
     if serializer.is_valid():
-        # Si es admin comunidad, solo puede crear usuarios de su comunidad
+
         if request.user.rol == 'Admin Comunidad':
             serializer.validated_data['comunidad'] = request.user.comunidad
         

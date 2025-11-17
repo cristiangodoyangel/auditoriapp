@@ -16,7 +16,7 @@ class PeriodoViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        # Si el usuario es admin y tiene comunidad, asignar automáticamente
+        
         if hasattr(user, 'rol') and user.rol == 'admin' and user.comunidad:
             serializer.save(comunidad=user.comunidad)
         else:

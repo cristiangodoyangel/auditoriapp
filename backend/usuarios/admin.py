@@ -14,4 +14,3 @@ class CustomUserAdmin(UserAdmin):
         (None, {'fields': ('comunidad', 'rol', 'telefono', 'es_auditor')}),
     )
 
-# Register your models here.

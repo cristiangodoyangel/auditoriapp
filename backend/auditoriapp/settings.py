@@ -13,23 +13,17 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-t_lug_mu-+%q#+%uv!(b_1utxn58&1%@ak$u(m3(x4w8oe$i1m"
 
-# SECURITY WARNING: don't run with debug turned on in production!
+
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
 
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -38,20 +32,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',     
-    'dashboard',         # Encargada del Dashboard Web
-    'comunidades',       # Gestión de las comunidades
-    'proyectos',         # Gestión de proyectos
-    'finanzas',          # Gestión de finanzas, movimientos bancarios, desembolsos
-    'beneficiarios',     # Gestión de beneficiarios y pagos
-    'documentos',        # Manejo de documentos subidos
-    'reportes',          # Generación de reportes en PDF/Excel
-    'rest_framework',  # Si usas Django REST Framework
-    'corsheaders',     # Si usas django-cors-headers
+    'dashboard',        
+    'comunidades',       
+    'proyectos',         
+    'finanzas',          
+    'beneficiarios',     
+    'documentos',        
+    'reportes',          
+    'rest_framework',  
+    'corsheaders',     
     'usuarios',        
     'rendiciones', 
-    'periodos',            # Gestión de periodos de proyectos
-    'auditores',            # Gestión de auditores
-    'socios',               # Gestión de socios
+    'periodos',            
+    'auditores',            
+    'socios',               
     'drf_spectacular',
     'drf_spectacular_sidecar',
 ]
@@ -89,8 +83,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "auditoriapp.wsgi.application"
 
 
-# Databaseasas
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+
 
 DATABASES = {
     "default": {
@@ -100,8 +93,7 @@ DATABASES = {
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -118,40 +110,36 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# ...existing code...
+
 AUTH_USER_MODEL = 'usuarios.CustomUser'
-# ...existing code...
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
+
+
 
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
 
-USE_I18N = True # <-- Corregí el error de tipeo (era I1N)
+USE_I18N = True 
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Media files
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# CORS Configuration
+
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite dev server
+    "http://localhost:5173", 
     "http://127.0.0.1:5173",
 ]
 
@@ -177,11 +165,11 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
-    'ALGORITHM': 'HS256', # <-- ASEGÚRATE QUE DIGA 256
+    'ALGORITHM': 'HS256', 
     'SIGNING_KEY': SECRET_KEY,
 }
 
-# CORS Configuration
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -189,4 +177,4 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOW_ALL_ORIGINS = True  # Solo para desarrollo
+CORS_ALLOW_ALL_ORIGINS = True 

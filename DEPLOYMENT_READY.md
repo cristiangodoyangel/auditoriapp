@@ -84,7 +84,7 @@ python manage.py createsuperuser
 ```bash
 cd frontend/react
 npm run build
-# Subir carpeta dist/ a public_html/
+
 ```
 
 ---

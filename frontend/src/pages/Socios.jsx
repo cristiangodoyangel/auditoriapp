@@ -1,19 +1,21 @@
-
 import React, { useEffect, useState } from 'react';
 import TablaGenerica from '../components/TablaGenerica';
 
-function formatFechaCL(fecha) {
-  if (!fecha) return '';
-  const d = new Date(fecha);
-  if (isNaN(d)) return fecha;
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}-${month}-${year}`;
+const mockSocios = [];
+for (let i = 1; i <= 30; i++) {
+  mockSocios.push({
+    id: i,
+    nombre: `NombreSocio ${i}`,
+    apellido: `ApellidoSocio ${i}`,
+    rut: `12.345.${i < 10 ? '00' : '0'}${i}-K`,
+    direccion: `Calle Ficticia #${i}, Calama`,
+    telefono: `+56 9 1234 56${i < 10 ? '0' : ''}${i}`,
+    activo: i % 4 !== 0,
+    comunidad: 1 
+  });
 }
 
 export default function Socios() {
-  // Detectar si el usuario es admin y obtener comunidad
   let isAdmin = false;
   let comunidadId = null;
   try {
@@ -26,118 +28,134 @@ export default function Socios() {
     }
   } catch {}
 
-  const [socios, setSocios] = useState([]);
+  const [socios, setSocios] = useState(mockSocios);
+  const [loading, setLoading] = useState(true);
+  const [formLoading, setFormLoading] = useState(false);
 
-  React.useEffect(() => {
-    const token = localStorage.getItem('access');
-  fetch('http://localhost:8000/api/comunidades/socios/', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setSocios(Array.isArray(data) ? data : data.results || []))
-      .catch(() => setSocios([]));
+  useEffect(() => {
+    setLoading(false);
   }, []);
 
-  // Estado para edición
   const [editando, setEditando] = useState(null);
   const [nuevoSocio, setNuevoSocio] = useState({nombre:'',apellido:'',rut:'',direccion:'',telefono:'',activo:true});
 
-  // Función para agregar socio
   function handleAgregar() {
-  setEditando('nuevo');
-  setNuevoSocio({nombre:'',apellido:'',rut:'',direccion:'',telefono:'',activo:true, comunidad: comunidadId});
+    setEditando('nuevo');
+    setNuevoSocio({nombre:'',apellido:'',rut:'',direccion:'',telefono:'',activo:true, comunidad: comunidadId});
   }
+
   function handleGuardarNuevo() {
-    const token = localStorage.getItem('access');
-    const formData = new FormData();
-    formData.append('nombre', nuevoSocio.nombre);
-    formData.append('apellido', nuevoSocio.apellido);
-    formData.append('rut', nuevoSocio.rut);
-    formData.append('direccion', nuevoSocio.direccion);
-    formData.append('telefono', nuevoSocio.telefono);
-    formData.append('activo', nuevoSocio.activo);
-    formData.append('comunidad', nuevoSocio.comunidad);
-    // Si en el futuro hay archivo mp4: if (nuevoSocio.mp4) formData.append('mp4', nuevoSocio.mp4);
-
-    console.log('[Socios] Guardando socio:', nuevoSocio);
-    console.log('[Socios] FormData:', Array.from(formData.entries()));
-
-    fetch('http://localhost:8000/api/comunidades/socios/', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` },
-      body: formData
-    })
-      .then(async res => {
-        console.log('[Socios] Respuesta status:', res.status);
-        if (res.ok) {
-          const data = await res.json();
-          console.log('[Socios] Socio guardado correctamente:', data);
-          setSocios([...socios, data]);
-        } else {
-          const errorText = await res.text();
-          console.log('[Socios] Error al guardar socio, respuesta:', errorText);
-          alert('Error al guardar socio');
-        }
-        setEditando(null);
-      })
-      .catch((err) => {
-        console.log('[Socios] Error de red al guardar socio:', err);
-        alert('Error de red al guardar socio');
-        setEditando(null);
-      });
+    setFormLoading(true);
+    setTimeout(() => {
+      const socioGuardado = { ...nuevoSocio, id: socios.length + 1 };
+      setSocios([...socios, socioGuardado]);
+      setEditando(null);
+      setFormLoading(false);
+    }, 500);
   }
+
   function handleEditar(socio) {
     if (!isAdmin) return;
     setEditando(socio.id);
     setNuevoSocio({...socio});
   }
+  
   function handleGuardarEdicion() {
     setSocios(socios.map(s => s.id === editando ? {...nuevoSocio, id: editando} : s));
     setEditando(null);
   }
+  
   function handleEliminar(id) {
     setSocios(socios.filter(s => s.id !== id));
     setEditando(null);
   }
 
+  const sociosActivos = socios.filter(s => s.activo).length;
+  const sociosInactivos = socios.length - sociosActivos;
+
   return (
     <div className="space-y-6">
-      <h2 className="text-secondary text-2xl font-bold">Gestión de Socios</h2>
-      <p className="text-taupe">Registro y control de socios de la comunidad</p>
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* KPIs reales aquí */}
+      
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-box bg-base-200 shadow-sm">
+        <div>
+          <h2 className="text-2xl font-bold text-primary">Gestión de Socios</h2>
+          <p className="text-base-content/70">
+            Registro y control de socios de la comunidad
+          </p>
+        </div>
+        {isAdmin && (
+          <button className="btn btn-primary" onClick={handleAgregar}>
+            Agregar Socio
+          </button>
+        )}
       </div>
-      {/* Botón agregar solo para admin */}
-      {isAdmin && (
-        <button className="bg-indigo text-white px-4 py-2 rounded-lg font-semibold shadow mb-2" onClick={handleAgregar}>Agregar Socio</button>
-      )}
-      {/* Formulario de edición/agregar */}
+
+      <div className="stats stats-vertical lg:stats-horizontal shadow w-full bg-base-100">
+        <div className="stat place-items-center">
+          <div className="stat-title">Socios Totales</div>
+          <div className="stat-value">{socios.length}</div>
+        </div>
+        <div className="stat place-items-center">
+          <div className="stat-title">Socios Activos</div>
+          <div className="stat-value text-success">{sociosActivos}</div>
+        </div>
+        <div className="stat place-items-center">
+          <div className="stat-title">Socios Inactivos</div>
+          <div className="stat-value text-base-content/70">{sociosInactivos}</div>
+        </div>
+      </div>
+
       {(editando !== null) && (
-        <div className="bg-white border border-indigo rounded-lg p-4 mb-4 max-w-lg">
-          <h3 className="font-bold mb-2">{editando === 'nuevo' ? 'Agregar Socio' : 'Editar Socio'}</h3>
-          <div className="grid grid-cols-2 gap-2 mb-2">
-            <input type="text" className="border rounded px-2 py-1" placeholder="Nombre" value={nuevoSocio.nombre} onChange={e=>setNuevoSocio({...nuevoSocio,nombre:e.target.value})} />
-            <input type="text" className="border rounded px-2 py-1" placeholder="Apellido" value={nuevoSocio.apellido} onChange={e=>setNuevoSocio({...nuevoSocio,apellido:e.target.value})} />
-            <input type="text" className="border rounded px-2 py-1" placeholder="RUT" value={nuevoSocio.rut} onChange={e=>setNuevoSocio({...nuevoSocio,rut:e.target.value})} />
-            <input type="text" className="border rounded px-2 py-1" placeholder="Dirección" value={nuevoSocio.direccion} onChange={e=>setNuevoSocio({...nuevoSocio,direccion:e.target.value})} />
-            <input type="text" className="border rounded px-2 py-1" placeholder="Teléfono" value={nuevoSocio.telefono} onChange={e=>setNuevoSocio({...nuevoSocio,telefono:e.target.value})} />
-            <label className="flex items-center gap-2 col-span-2">
-              <input type="checkbox" checked={nuevoSocio.activo} onChange={e=>setNuevoSocio({...nuevoSocio,activo:e.target.checked})} /> Socio Activo
-            </label>
-          </div>
-          <div className="flex gap-2">
-            <button className="bg-indigo text-white px-3 py-1 rounded" onClick={editando==='nuevo'?handleGuardarNuevo:handleGuardarEdicion}>Guardar</button>
-            <button className="bg-taupe text-white px-3 py-1 rounded" onClick={()=>setEditando(null)}>Cancelar</button>
-            {editando!=='nuevo' && (
-              <button className="bg-red-500 text-white px-3 py-1 rounded" onClick={()=>handleEliminar(editando)}>Eliminar</button>
-            )}
+        <div className="card bg-base-100 shadow-lg">
+          <div className="card-body">
+            <h3 className="card-title text-primary">{editando === 'nuevo' ? 'Agregar Socio' : 'Editar Socio'}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label"><span className="label-text">Nombre</span></label>
+                <input type="text" className="input input-bordered" placeholder="Nombre" value={nuevoSocio.nombre} onChange={e=>setNuevoSocio({...nuevoSocio,nombre:e.target.value})} />
+              </div>
+              <div className="form-control">
+                <label className="label"><span className="label-text">Apellido</span></label>
+                <input type="text" className="input input-bordered" placeholder="Apellido" value={nuevoSocio.apellido} onChange={e=>setNuevoSocio({...nuevoSocio,apellido:e.target.value})} />
+              </div>
+              <div className="form-control">
+                <label className="label"><span className="label-text">RUT</span></label>
+                <input type="text" className="input input-bordered" placeholder="RUT" value={nuevoSocio.rut} onChange={e=>setNuevoSocio({...nuevoSocio,rut:e.target.value})} />
+              </div>
+              <div className="form-control">
+                <label className="label"><span className="label-text">Dirección</span></label>
+                <input type="text" className="input input-bordered" placeholder="Dirección" value={nuevoSocio.direccion} onChange={e=>setNuevoSocio({...nuevoSocio,direccion:e.target.value})} />
+              </div>
+              <div className="form-control">
+                <label className="label"><span className="label-text">Teléfono</span></label>
+                <input type="text" className="input input-bordered" placeholder="Teléfono" value={nuevoSocio.telefono} onChange={e=>setNuevoSocio({...nuevoSocio,telefono:e.target.value})} />
+              </div>
+              <div className="form-control md:col-span-2">
+                <label className="label cursor-pointer justify-start gap-4">
+                  <input type="checkbox" className="checkbox checkbox-primary" checked={nuevoSocio.activo} onChange={e=>setNuevoSocio({...nuevoSocio,activo:e.target.checked})} />
+                  <span className="label-text">Socio Activo</span> 
+                </label>
+              </div>
+            </div>
+            <div className="card-actions justify-end gap-2 mt-4">
+              {editando!=='nuevo' && (
+                <button className="btn btn-error text-white" onClick={()=>handleEliminar(editando)}>Eliminar</button>
+              )}
+              <button className="btn btn-ghost" onClick={()=>setEditando(null)}>Cancelar</button>
+              <button className="btn btn-primary" onClick={editando==='nuevo'?handleGuardarNuevo:handleGuardarEdicion} disabled={formLoading}>
+                {formLoading && <span className="loading loading-spinner"></span>}
+                Guardar
+              </button>
+            </div>
           </div>
         </div>
       )}
-      {/* Tabla de socios */}
-      <div className="bg-card rounded-lg shadow p-4 mt-6 border border-secondary">
-        <div className="font-bold text-secondary mb-2">Socios Registrados</div>
+
+      {loading ? (
+        <div className="text-center p-12">
+          <span className="loading loading-lg loading-spinner text-primary"></span>
+        </div>
+      ) : (
         <TablaGenerica
           columns={[
             { key: 'nombre', label: 'Nombre' },
@@ -150,16 +168,19 @@ export default function Socios() {
           data={socios}
           renderCell={(row, col) => {
             if (col.key === 'activo') {
-              return row.activo ? 'Sí' : 'No';
+              return row.activo 
+                ? <div className="badge badge-success badge-outline">Sí</div> 
+                : <div className="badge badge-ghost">No</div>;
             }
             if (col.key === 'nombre' && isAdmin) {
-              return <span className="text-indigo font-bold cursor-pointer underline" onClick={()=>handleEditar(row)}>{row.nombre}</span>;
+              return <span className="link link-primary font-bold hover:text-primary-focus transition-colors" onClick={()=>handleEditar(row)}>{row.nombre}</span>;
             }
             return row[col.key] || '';
           }}
           emptyText="No hay socios registrados"
+          rowsPerPage={10}
         />
-      </div>
+      )}
     </div>
   );
 }

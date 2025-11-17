@@ -16,7 +16,7 @@ Este sistema reemplaza flujos de trabajo manuales y opacos (Excel/PDFs) por una 
 
 | Dashboard General (KPIs) | Gestión de Rendiciones |
 |:---:|:---:|
-| ![Dashboard](./frontend/src/assets/screenshots/dashboard.png) | ![Rendiciones](./frontend/src/assets/screenshots/rendiciones.png) |
+| ![Dashboard](./frontend/src/assets/gestion.webp) | ![Proyectos](./frontend/src/assets/proyectos.png) |
 
 ---
 
@@ -111,3 +111,4 @@ JWT_ACCESS_TOKEN_LIFETIME=60
 JWT_REFRESH_TOKEN_LIFETIME=1440
 👤 Autor
 Cristian Godoy Angel Fullstack Developer
+

@@ -100,15 +100,23 @@ SECRET_KEY=tu_clave_secreta
 DEBUG=True
 ALLOWED_HOSTS=*
 
-# Base de Datos
+### Base de Datos
 DB_NAME=auditoria_db
 DB_USER=admin
 DB_PASSWORD=password
 DB_HOST=localhost
 
-##  JWT Settings
+####  JWT Settings
 JWT_ACCESS_TOKEN_LIFETIME=60
 JWT_REFRESH_TOKEN_LIFETIME=1440
-👤 Autor
+
+<br>
+## 👤 Autor
+
 Cristian Godoy Angel Fullstack Developer
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/cristian-godoy-angel/)
+
+
+
 

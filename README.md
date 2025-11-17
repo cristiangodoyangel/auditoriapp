@@ -110,12 +110,13 @@ DB_HOST=localhost
 JWT_ACCESS_TOKEN_LIFETIME=60
 JWT_REFRESH_TOKEN_LIFETIME=1440
 
-<br>
+
 ## 👤 Autor
 
 Cristian Godoy Angel Fullstack Developer
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/cristian-godoy-angel/)
+
 
 
 

@@ -236,7 +236,7 @@ export default function Rendiciones() {
               target="_blank" 
               rel="noopener noreferrer" 
               title={doc.nombre}
-              className="btn btn-outline btn-xs"
+              className="btn btn-outline btn-xs bg-primary/80 text-white"
             >
               Ver PDF
             </a>

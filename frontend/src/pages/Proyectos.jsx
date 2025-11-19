@@ -293,6 +293,25 @@ export default function Proyectos() {
           <progress className="progress progress-primary w-20" value={montoRendido} max={presupuesto}></progress>
         </div>
       ),
+            documentos: (
+        <div className="btn-group btn-group-vertical lg:btn-group-horizontal flex flex-wrap gap-2">
+          {p.acta_url ? (
+            <a href={p.acta_url} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-xs bg-primary/80 text-white"  download>Acta</a>
+          ) : (
+             <button className="btn btn-outline btn-xs btn-disabled bg-primary">Acta</button>
+          )}
+          {p.cotizaciones_url ? (
+            <a href={p.cotizaciones_url} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-xs bg-primary/80 text-white" download>Cotización</a>
+          ) : (
+             <button className="btn btn-outline btn-xs btn-disabled">Cotiz.</button>
+          )}
+          {p.elegido_url ? (
+            <a href={p.elegido_url} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-xs bg-primary/80 text-white" download>Elegido</a>
+          ) : (
+             <button className="btn btn-outline btn-xs btn-disabled">Elegido</button>
+          )}
+        </div>
+      ),
       estado_rendicion: (
         <div className={`badge ${
             p.estado_rendicion === 'Aprobado' || p.estado_rendicion === 'Validado' ? 'badge-success' :
@@ -302,25 +321,7 @@ export default function Proyectos() {
           {p.estado_rendicion}
         </div>
       ),
-      documentos: (
-        <div className="btn-group btn-group-vertical lg:btn-group-horizontal">
-          {p.acta_url ? (
-            <a href={p.acta_url} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-xs" download>Acta</a>
-          ) : (
-             <button className="btn btn-outline btn-xs btn-disabled">Acta</button>
-          )}
-          {p.cotizaciones_url ? (
-            <a href={p.cotizaciones_url} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-xs" download>Cotiz.</a>
-          ) : (
-             <button className="btn btn-outline btn-xs btn-disabled">Cotiz.</button>
-          )}
-          {p.elegido_url ? (
-            <a href={p.elegido_url} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-xs" download>Elegido</a>
-          ) : (
-             <button className="btn btn-outline btn-xs btn-disabled">Elegido</button>
-          )}
-        </div>
-      ),
+
     };
   });
 

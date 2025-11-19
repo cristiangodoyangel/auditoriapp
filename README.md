@@ -12,7 +12,7 @@ Este sistema reemplaza flujos de trabajo manuales y opacos (Excel/PDFs) por una 
 
 ## 📸 Vistas del Sistema
 
-*(Reemplaza estas rutas con capturas de tu dashboard y tablas)*
+
 
 | Dashboard General (KPIs) | Gestión de Rendiciones |
 |:---:|:---:|
@@ -116,6 +116,7 @@ JWT_REFRESH_TOKEN_LIFETIME=1440
 Cristian Godoy Angel Fullstack Developer
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/cristian-godoy-angel/)
+
 
 
 
